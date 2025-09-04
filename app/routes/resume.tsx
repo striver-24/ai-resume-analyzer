@@ -6,7 +6,7 @@ import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 
 export const meta =() => ([
-    { title: 'Resumind | Review'},
+    { title: 'StackResume.ai | Review'},
     {name: 'description', content: "Detailed overview of your Resume."},
 ])
 
@@ -61,7 +61,7 @@ const Resume = () => {
             <div className="flex flex-row w-full max-lg:flex-col-reverse">
                 <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
                     {imageUrl && resumeUrl && (
-                        <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-w-xl:h-fit w-fit"> //max-wxl or max-w-xl
+                        <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-w-xl:h-fit w-fit">
                             <a href={resumeUrl} target="blank" rel="noopener noreferrer">
                                 <img
                                     src={imageUrl}

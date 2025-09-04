@@ -5,6 +5,12 @@
  * - Rounds to two decimal places.
  * @returns A string representing the size in KB, MB, or GB.
  */
+import clsx, {type ClassValue} from "clsx";
+import {twMerge} from "tailwind-merge";
+
+export function cn( ...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs))
+}
 
 export default function formatSize(bytes: number): string {
     if (!Number.isFinite(bytes) || bytes < 0) return '0 KB';
