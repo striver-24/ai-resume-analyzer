@@ -1,5 +1,6 @@
 import React, {useEffect} from "react";
 import {usePuterStore} from "~/lib/puter";
+import Footer from "~/components/Footer";
 import {useLocation, useNavigate} from "react-router";
 
 export const meta =() => ([
@@ -10,7 +11,7 @@ export const meta =() => ([
 const Auth = () => {
     const { isLoading, auth } = usePuterStore();
     const location = useLocation();
-    const next = location.search.split('next=')[1];
+    const next = location.search.split('next=')[1] || '/';
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,6 +46,7 @@ const Auth = () => {
                     </div>
                 </section>
             </div>
+            <Footer />
         </main>
     )
 }

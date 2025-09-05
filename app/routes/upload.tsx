@@ -1,6 +1,7 @@
 import {type FormEvent, useState} from 'react'
 import Navbar from "~/components/Navbar";
 import FileUploader from "~/components/FileUploader";
+import Footer from "~/components/Footer";
 import {usePuterStore} from "~/lib/puter";
 import {useNavigate} from "react-router";
 import {convertPdfToImage} from "~/lib/pdf2img";
@@ -120,6 +121,7 @@ const Upload = () => {
                     )}
                 </div>
             </section>
+            <Footer />
         </main>
     )
 }
