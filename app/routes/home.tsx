@@ -24,10 +24,10 @@ export default function Home() {
               </div>
           </div>
           <div className="flex flex-col items-center justify-center mt-6 gap-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <img src="/images/resume_01.png" alt="Sample resume 1" className="rounded-xl shadow-sm max-w-[260px]"/>
-                  <img src="/images/resume_02.png" alt="Sample resume 2" className="rounded-xl shadow-sm max-w-[260px]"/>
-                  <img src="/images/resume_03.png" alt="Sample resume 3" className="rounded-xl shadow-sm max-w-[260px]"/>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-[860px] px-4">
+                  <img src="/images/resume_01.png" alt="Sample resume 1" className="rounded-xl shadow-sm w-full max-w-[500px]"/>
+                  <img src="/images/resume_02.png" alt="Sample resume 2" className="rounded-xl shadow-sm w-full max-w-[500px]"/>
+                  <img src="/images/resume_03.png" alt="Sample resume 3" className="rounded-xl shadow-sm w-full max-w-[500px]"/>
               </div>
           </div>
       </section>
