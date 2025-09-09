@@ -11,9 +11,9 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-    return <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+    return <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen flex flex-col">
       <Navbar />
-      <section className="main-section">
+      <section className="main-section flex-1">
           <div className="page-heading py-16 text-center">
               <h1>Crack your dream job using AI</h1>
               <h2>Upload your resume to get ATS insights and improvement tips.</h2>

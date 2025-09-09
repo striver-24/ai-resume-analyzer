@@ -52,9 +52,9 @@ const Resumes = () => {
   }, [auth.isAuthenticated, kv]);
 
   return (
-    <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+    <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen flex flex-col">
       <Navbar />
-      <section className="main-section">
+      <section className="main-section flex-1">
         <div className="page-heading py-16">
           <h1>Your Scanned Resumes</h1>
           {loadingResumes ? (

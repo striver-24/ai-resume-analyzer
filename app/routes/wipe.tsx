@@ -62,9 +62,9 @@ const WipeApp = () => {
   if (error) return <div>Error {error}</div>;
 
   return (
-    <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+    <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen flex flex-col">
       <Navbar />
-      <section className="main-section">
+      <section className="main-section flex-1">
         <div className="page-heading py-16">
           <h1>Danger Zone</h1>
           <h2>Wipe all app data from your Puter drive and KV store</h2>

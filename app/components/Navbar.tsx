@@ -56,7 +56,7 @@ const Navbar = () => {
         )}
 
         {auth.isAuthenticated ? (
-          <div className="relative">
+          <div className={`relative ${(location.pathname === '/upload') ? 'max-sm:hidden' : ''}`}>
             <button
               className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 border border-gray-200"
               onClick={() => setOpen((v) => !v)}
