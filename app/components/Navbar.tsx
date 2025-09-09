@@ -49,6 +49,11 @@ const Navbar = () => {
         <Link to="/upload" className="primary-button w-fit">
           Upload Resume
         </Link>
+        {auth.isAuthenticated && (
+          <Link to="/resumes" className="rounded-full px-4 py-2 border border-gray-200 hidden sm:block">
+            Your Scanned Resumes
+          </Link>
+        )}
 
         {auth.isAuthenticated ? (
           <div className="relative">
@@ -63,18 +68,24 @@ const Navbar = () => {
             </button>
 
             {open && (
-              <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-2xl shadow-lg p-4 z-50">
+              <div className="absolute right-0 mt-2 w-64 sm:w-80 bg-white border border-gray-200 rounded-2xl shadow-lg p-4 z-50">
                 <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
                   <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-xs font-semibold">
                     {initials}
                   </div>
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{auth.user?.username}</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold truncate">{auth.user?.username}</span>
                     <span className="text-xs text-dark-200 break-all">{auth.user?.uuid}</span>
                   </div>
                 </div>
 
                 <div className="pt-3">
+                  <Link to="/resumes" className="text-sm text-blue-600 hover:underline" onClick={() => setOpen(false)}>
+                    Your Scanned Resumes
+                  </Link>
+                </div>
+
+                <div className="pt-3 hidden sm:block">
                   <div className="text-xs text-dark-200 mb-2">Recent History</div>
                   {history.length === 0 ? (
                     <div className="text-sm text-dark-200">No recent items</div>
@@ -111,7 +122,10 @@ const Navbar = () => {
             )}
           </div>
         ) : (
-          <button className="rounded-full px-4 py-2 border border-gray-200" onClick={() => navigate('/auth?next=' + encodeURIComponent(location.pathname || '/'))}>
+          <button className="rounded-full px-4 py-2 border border-gray-200" onClick={() => {
+                      const next = (location.pathname || '/') + (location.search || '');
+                      navigate('/auth?next=' + encodeURIComponent(next));
+                    }}>
             Sign in
           </button>
         )}

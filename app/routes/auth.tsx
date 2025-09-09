@@ -11,14 +11,16 @@ export const meta =() => ([
 const Auth = () => {
     const { isLoading, auth } = usePuterStore();
     const location = useLocation();
-    const next = location.search.split('next=')[1] || '/';
+    const params = new URLSearchParams(location.search);
+    const nextParam = params.get('next');
+    const next = nextParam ? decodeURIComponent(nextParam) : '/';
     const navigate = useNavigate();
 
     useEffect(() => {
-        if(auth.isAuthenticated) navigate(next);
-    },  [auth.isAuthenticated, next]);
+        if(auth.isAuthenticated) navigate(next || '/');
+    },  [auth.isAuthenticated, next, navigate]);
     return (
-        <main className="bg-[url('public/images/bg-auth.svg')] bg-cover min-h-screen flex items-center justify-center h-full">
+        <main className="bg-[url('/images/bg-auth.svg')] bg-cover min-h-screen flex items-center justify-center h-full">
             <div className="gradient-border shadow-lg">
                 <section className="flex flex-col gap-8 bg-white rounded-2xl p-10">
                     <div className="flex flex-col items-center gap-2 text-center">
@@ -27,8 +29,8 @@ const Auth = () => {
                     </div>
                     <div>
                         {isLoading ? (
-                            <button className="auth-button animate-pulse">
-                                <p>Signing You In.....</p>
+                            <button className="auth-button animate-pulse" aria-busy>
+                                <p>Signing You In…</p>
                             </button>
                         ) : (
                             <>
