@@ -92,48 +92,46 @@ export const resumes: Resume[] = [
 ];
 
 export const AIResponseFormat = `
-      interface Feedback {
-      overallScore: number; //max 100
-      ATS: {
-        score: number; //rate based on ATS suitability
-        tips: {
-          type: "good" | "improve";
-          tip: string; //give 3-4 tips
-        }[];
-      };
-      toneAndStyle: {
-        score: number; //max 100
-        tips: {
-          type: "good" | "improve";
-          tip: string; //make it a short "title" for the actual explanation
-          explanation: string; //explain in detail here
-        }[]; //give 3-4 tips
-      };
-      content: {
-        score: number; //max 100
-        tips: {
-          type: "good" | "improve";
-          tip: string; //make it a short "title" for the actual explanation
-          explanation: string; //explain in detail here
-        }[]; //give 3-4 tips
-      };
-      structure: {
-        score: number; //max 100
-        tips: {
-          type: "good" | "improve";
-          tip: string; //make it a short "title" for the actual explanation
-          explanation: string; //explain in detail here
-        }[]; //give 3-4 tips
-      };
-      skills: {
-        score: number; //max 100
-        tips: {
-          type: "good" | "improve";
-          tip: string; //make it a short "title" for the actual explanation
-          explanation: string; //explain in detail here
-        }[]; //give 3-4 tips
-      };
-    }`;
+  interface Feedback {
+    overallScore: number; //max 100
+    ATS: {
+      score: number;
+      tips: { type: "good" | "improve"; tip: string; }[];
+    };
+
+    toneAndStyle: CategoryFeedback;
+    content: CategoryFeedback;
+    structure: CategoryFeedback;
+    skills: CategoryFeedback;
+
+    mockInterview: {
+      questions: {
+        question: string;
+        whyTheyAsk: string;
+        strongAnswer: string;
+        followUps?: string[];
+      }[]; // 6–10 items
+    };
+  }
+
+  interface CategoryFeedback {
+    score: number; //max 100
+    tips: {
+      type: "good" | "improve";
+      tip: string; // short title
+      explanation: string; // detailed explanation
+    }[]; // 3–4 tips
+
+    problems: {
+      snippet: string;          // exact text or a short paraphrase from resume that needs change
+      reason: string;           // why this is a problem
+      suggestion: string;       // how to fix
+      severity?: "low" | "med" | "high"; // drives color if you want
+      page?: number;            // starts at 1 if known
+      line?: number;            // rough line number
+      sectionGuess?: string;    // e.g., "Experience", "Summary"
+    }[]; // 3–8 per category if applicable
+  }`;
 
 export const prepareInstructions = ({
                                         jobTitle,
@@ -153,4 +151,6 @@ export const prepareInstructions = ({
   The job description is: ${jobDescription}
   Provide the feedback using the following format: ${AIResponseFormat}
   Return the analysis as a JSON object, without any other text and without the backticks.
+  Focus problems[].snippet on short, recognizable text spans from the resume where possible.
+  Generate mockInterview.questions that directly reflect resume strengths/weaknesses.
   Do not include any other text or comments.`;

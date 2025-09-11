@@ -4,6 +4,7 @@ import {usePuterStore} from "~/lib/puter";
 import Summary from "~/components/Summary";
 import ATS from "~/components/ATS";
 import Details from "~/components/Details";
+import MockInterview from "~/components/MockInterview";
 import Footer from "~/components/Footer";
 
 export const meta =() => ([
@@ -80,6 +81,9 @@ const Resume = () => {
                             <Summary feedback={feedback} />
                             <ATS score={feedback.ATS.score || 0} suggestions={feedback.ATS.tips || []} />
                             <Details feedback={feedback} />
+                            {feedback.mockInterview?.questions?.length ? (
+                              <MockInterview questions={feedback.mockInterview.questions} />
+                            ) : null}
                         </div>
                     ):(
                         <img src="/images/resume-scan-2.gif" className="w-full" />

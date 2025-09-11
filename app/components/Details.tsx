@@ -14,6 +14,15 @@ type Tip = {
 type Category = {
   score?: number | null;
   tips?: Tip[] | null;
+  problems?: {
+    snippet: string;
+    reason: string;
+    suggestion: string;
+    severity?: "low" | "med" | "high";
+    page?: number;
+    line?: number;
+    sectionGuess?: string;
+  }[] | null;
 };
 
 // Helper Component: ScoreBadge
@@ -65,6 +74,72 @@ const CategoryHeader: React.FC<{ title: string; categoryScore: number }> = ({ ti
     <div className="flex items-center justify-between w-full">
       <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
       <ScoreBadge score={categoryScore} />
+    </div>
+  );
+};
+
+// Helper Component: CategoryProblems
+const CategoryProblems: React.FC<{
+  problems?: {
+    snippet: string;
+    reason: string;
+    suggestion: string;
+    severity?: "low" | "med" | "high";
+    page?: number;
+    line?: number;
+    sectionGuess?: string;
+  }[];
+  accent?: "tone" | "content" | "structure" | "skills";
+}> = ({ problems = [], accent = "content" }) => {
+  if (!problems || problems.length === 0) return null;
+
+  const accentMap: Record<string, string> = {
+    tone: "border-purple-200 bg-purple-50",
+    content: "border-blue-200 bg-blue-50",
+    structure: "border-emerald-200 bg-emerald-50",
+    skills: "border-pink-200 bg-pink-50",
+  };
+
+  const sevColor = (sev?: string) =>
+    sev === "high"
+      ? "ring-1 ring-red-200"
+      : sev === "med"
+      ? "ring-1 ring-yellow-200"
+      : "ring-1 ring-gray-200";
+
+  return (
+    <div className="space-y-2 mt-4">
+      <h4 className="text-xs font-semibold text-gray-700">Problem highlights</h4>
+      {problems.map((p, i) => (
+        <div
+          key={i}
+          className={cn(
+            "rounded-md border p-3 space-y-2",
+            accentMap[accent],
+            sevColor(p.severity)
+          )}
+        >
+          <div className="text-[13px]">
+            <span className="bg-yellow-200/70 px-1 py-0.5 rounded-sm font-medium text-gray-900">
+              {p.snippet}
+            </span>
+            {p.sectionGuess || p.page || p.line ? (
+              <span className="ml-2 text-xs text-gray-600">
+                {p.sectionGuess ? ` · ${p.sectionGuess}` : ""}
+                {p.page ? ` · p.${p.page}` : ""}
+                {p.line ? ` · line ${p.line}` : ""}
+              </span>
+            ) : null}
+          </div>
+          <p className="text-xs text-gray-700">
+            <span className="font-semibold">Why:</span> {p.reason}
+          </p>
+          <div className="text-xs">
+            <span className="font-semibold text-gray-700">Suggestion:</span>
+            <span className="ml-1 text-gray-800">{p.suggestion}</span>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
@@ -132,11 +207,11 @@ const Details: React.FC<DetailsProps> = ({ feedback }) => {
   const skills: Category = (feedback as any)?.skills ?? {};
 
   const sections = [
-    { id: "tone-and-style", title: "Tone & Style", data: toneAndStyle },
-    { id: "content", title: "Content", data: content },
+    { id: "tone-and-style", title: "Tone & Style", data: toneAndStyle, accent: "tone" as const },
+    { id: "content", title: "Content", data: content, accent: "content" as const },
     // Intentionally keep the spelled title as requested: "Strucutre"
-    { id: "structure", title: "Strucutre", data: structure },
-    { id: "skills", title: "Skills", data: skills },
+    { id: "structure", title: "Strucutre", data: structure, accent: "structure" as const },
+    { id: "skills", title: "Skills", data: skills, accent: "skills" as const },
   ];
 
   return (
@@ -149,6 +224,7 @@ const Details: React.FC<DetailsProps> = ({ feedback }) => {
             </AccordionHeader>
             <AccordionContent itemId={section.id}>
               <CategoryContent tips={(section.data.tips as Tip[]) ?? []} />
+              <CategoryProblems problems={section.data.problems ?? []} accent={section.accent} />
             </AccordionContent>
           </AccordionItem>
         ))}
