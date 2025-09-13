@@ -15,7 +15,7 @@ An AI-powered resume analyzer that helps you optimize your resume for Applicant 
   - Installation
   - Development
   - Build
-  - Preview Production Build
+  - Start (serve production build)
 - Usage Guide
   - Home
   - Upload & Analyze
@@ -65,7 +65,7 @@ Note: Direct file preview thumbnails are generated from your uploaded PDF and st
 - TypeScript – types and safety
 - Tailwind CSS – styling
 - Puter.js – Auth, File System (fs), Key-Value (kv), and AI services
-- Vite – dev server & build tooling
+- React Router v7 Dev/Build tooling – dev server & build
 
 ## Getting Started
 
@@ -79,20 +79,21 @@ npm install
 ```
 
 ### Development
-Start the dev server with HMR:
+Start the dev server with HMR (React Router Dev):
 ```bash
 npm run dev
 ```
-The app typically runs at http://localhost:5173.
+The app typically runs at http://localhost:3000.
 
 ### Build
 ```bash
 npm run build
 ```
 
-### Preview Production Build
+### Start (serve production build)
+After building, serve with React Router Serve:
 ```bash
-npm run preview
+npm run start
 ```
 
 ## Usage Guide
@@ -139,9 +140,9 @@ npm run preview
 - Resume KV keys follow the pattern `resume:<uuid>`. Listing uses `kv.list('resume:*', true)` to fetch values.
 
 ## Available Scripts
-- `dev` – Start development server with HMR
-- `build` – Build for production
-- `preview` – Preview the production build locally
+- `dev` – Start development server with HMR (React Router Dev)
+- `build` – Build for production (React Router Build)
+- `start` – Serve the production build (React Router Serve)
 
 Refer to `package.json` for the full list.
 
