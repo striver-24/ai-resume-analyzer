@@ -1,10 +1,9 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate, useParams} from "react-router";
 import {usePuterStore} from "~/lib/puter";
-import Summary from "~/components/Summary";
 import ATS from "~/components/ATS";
-import Details from "~/components/Details";
 import MockInterview from "~/components/MockInterview";
+import ImprovementsDropdown from "~/components/ImprovementsDropdown";
 import Footer from "~/components/Footer";
 
 export const meta =() => ([
@@ -18,6 +17,8 @@ const Resume = () => {
     const [imageUrl, setImageUrl] = useState('');
     const [resumeUrl, setResumeUrl] = useState('');
     const [feedback, setFeedback] = useState<Feedback | null>(null);
+    const [jobTitle, setJobTitle] = useState<string>("");
+    const [jobDescription, setJobDescription] = useState<string>("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,7 +46,9 @@ const Resume = () => {
             setImageUrl(imageUrl);
 
             setFeedback(data.feedback);
-            console.log({ resumeUrl, imageUrl, feedback: data.feedback });
+            setJobTitle(data.jobTitle || "");
+            setJobDescription(data.jobDescription || "");
+            console.log({ resumeUrl, imageUrl, feedback: data.feedback, jobTitle: data.jobTitle, jobDescription: data.jobDescription });
         }
 
         loadResume();
@@ -77,12 +80,11 @@ const Resume = () => {
                 <section className="feedback-section">
                     <h2 className="text-4xl !text-blavk font-bold">Resume Review</h2>
                     {feedback ? (
-                        <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
-                            <Summary feedback={feedback} />
-                            <ATS score={feedback.ATS.score || 0} suggestions={feedback.ATS.tips || []} />
-                            <Details feedback={feedback} />
+                        <div className="flex flex-col gap-6 animate-in fade-in duration-1000">
+                            <ATS score={feedback.ATS.score || 0} />
+                            <ImprovementsDropdown feedback={feedback} />
                             {feedback.mockInterview?.questions?.length ? (
-                              <MockInterview questions={feedback.mockInterview.questions} />
+                              <MockInterview questions={feedback.mockInterview.questions} jobTitle={jobTitle} />
                             ) : null}
                         </div>
                     ):(

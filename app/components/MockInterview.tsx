@@ -8,14 +8,14 @@ interface QA {
   followUps?: string[];
 }
 
-const MockInterview: React.FC<{ questions: QA[] }> = ({ questions }) => {
+const MockInterview: React.FC<{ questions: QA[]; jobTitle?: string }> = ({ questions, jobTitle }) => {
   if (!questions || questions.length === 0) return null;
 
   return (
     <div className="w-full bg-white rounded-2xl shadow-md">
       <div className="px-4 pt-4">
-        <h3 className="text-lg font-semibold text-gray-900">Mock Interview (Based on Your Resume)</h3>
-        <p className="text-sm text-gray-500">Practice with realistic questions and strong sample answers.</p>
+        <h3 className="text-lg font-semibold text-gray-900">Interview Practice {jobTitle ? `for ${jobTitle}` : "(Based on Your Resume)"}</h3>
+        <p className="text-sm text-gray-500">Questions are tailored from your resume and the provided job context.</p>
       </div>
       <div className="px-2 py-2">
         <Accordion allowMultiple>
