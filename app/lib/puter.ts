@@ -6,7 +6,8 @@ declare global {
             auth: {
                 getUser: () => Promise<PuterUser>;
                 isSignedIn: () => Promise<boolean>;
-                signIn: () => Promise<void>;
+        // Accept optional provider-specific options (e.g., Google)
+        signIn: (options?: any) => Promise<void>;
                 signOut: () => Promise<void>;
             };
             fs: {
@@ -175,7 +176,22 @@ export const usePuterStore = create<PuterStore>((set, get) => {
         set({ isLoading: true, error: null });
 
         try {
-            await puter.auth.signIn();
+            const clientId = (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID as string | undefined;
+            if (clientId) {
+                const origin = typeof window !== 'undefined' ? window.location.origin : undefined;
+                const redirect_uri = origin ? origin + '/auth' : undefined;
+                await (puter.auth as any).signIn({
+                    provider: 'google',
+                    client_id: clientId,
+                    redirect_uri,
+                    // Prefer popup when available to avoid full-page navigation
+                    use_popup: true,
+                    // Helpful prompt to choose account when users have multiple
+                    prompt: 'select_account'
+                });
+            } else {
+                await puter.auth.signIn();
+            }
             await checkAuthStatus();
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Sign in failed";

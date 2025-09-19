@@ -17,7 +17,9 @@ const Auth = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if(auth.isAuthenticated) navigate(next || '/');
+        // Ensure we re-check status when landing here from OAuth redirect
+        if (auth?.checkAuthStatus) auth.checkAuthStatus();
+        if (auth.isAuthenticated) navigate(next || '/');
     },  [auth.isAuthenticated, next, navigate]);
     return (
         <main className="bg-[url('/images/bg-auth.svg')] bg-cover min-h-screen flex flex-col">
@@ -41,7 +43,7 @@ const Auth = () => {
                                         </button>
                                     ) : (
                                         <button className="auth-button" onClick={auth.signIn}>
-                                            <p>Login</p>
+                                            <p>Continue with Google</p>
                                         </button>
                                     )}
                                 </>

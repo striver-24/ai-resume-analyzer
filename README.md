@@ -139,6 +139,15 @@ npm run start
 - Puter.js is required at runtime. The zustand store in `app/lib/puter.ts` waits for `window.puter` and surfaces helpful error messages (e.g., "Puter.js not available").
 - Resume KV keys follow the pattern `resume:<uuid>`. Listing uses `kv.list('resume:*', true)` to fetch values.
 
+### Google Auth via Puter.js
+- Optional: You can enable Google Sign-In using Puter.js by providing a Google OAuth Client ID via environment variables.
+- Create a `.env` (or `.env.local`) file based on `.env.example` and set:
+  ```env
+  VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+  ```
+- When this variable is set, the app will call `puter.auth.signIn({ provider: 'google', client_id: VITE_GOOGLE_CLIENT_ID })` during login.
+- If not set, it will fall back to the default `puter.auth.signIn()` behavior.
+
 ## Available Scripts
 - `dev` – Start development server with HMR (React Router Dev)
 - `build` – Build for production (React Router Build)
@@ -154,6 +163,11 @@ Refer to `package.json` for the full list.
   - Confirm that your uploads succeeded and KV contains keys like `resume:<uuid>`.
 - Stuck on auth page after sign in
   - The app uses `/auth?next=/desired/path` for redirection. Ensure the `next` query param is present when navigating to `/auth`.
+- Clicking "Continue with Google" goes to a Puter configuration page
+  - Ensure you have set `VITE_GOOGLE_CLIENT_ID` in your `.env` and restarted the dev server.
+  - In your Google Cloud Console, add an authorized redirect URI that matches your app (e.g., `http://localhost:3000/auth` for local dev). This repo passes `redirect_uri` as `${window.location.origin}/auth`.
+  - In your Puter app settings, enable Google as a provider (if applicable) and make sure the client ID matches the one configured.
+  - If the provider still opens in a new tab instead of a popup, check for popup blockers or try again; we request `use_popup: true` when possible.
 
 ## Contributing
 Contributions are welcome! Please open an issue to discuss improvements or submit a PR with a clear description of changes.
