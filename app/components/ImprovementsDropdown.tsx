@@ -60,7 +60,7 @@ const ImprovementsDropdown: React.FC<ImprovementsDropdownProps> = ({ feedback })
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Suggested Improvements</h3>
-          <p className="text-sm text-gray-500">Based on issues lowering your ATS score. Click to expand and view sample lines.</p>
+          <p className="text-sm text-gray-500">Mapped to JD alignment and ATS best practices. Click to expand and view sample lines.</p>
         </div>
         <button
           type="button"
@@ -103,9 +103,16 @@ const ImprovementsDropdown: React.FC<ImprovementsDropdownProps> = ({ feedback })
                       </span>
                     )}
                   </div>
-                  {p.severity && (
-                    <span className="text-[10px] uppercase tracking-wide text-gray-500">{p.severity}</span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {p.source && (
+                      <span className={`text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded ${p.source === "JD" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}>
+                        {p.source}
+                      </span>
+                    )}
+                    {p.severity && (
+                      <span className="text-[10px] uppercase tracking-wide text-gray-500">{p.severity}</span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-xs text-gray-700 mt-1"><span className="font-semibold">Why:</span> {p.reason}</p>
                 <p className="text-xs text-gray-800 mt-1"><span className="font-semibold">Suggestion:</span> {p.suggestion}</p>

@@ -64,7 +64,59 @@ const Upload = () => {
             ? feedback.message.content
             : feedback.message.content[0].text;
 
-        data.feedback = JSON.parse(feedbackText);
+        // Safely parse LLM output which may include code fences or extra text
+        const safeParseJSON = (raw: string): any | null => {
+            if (!raw) return null;
+            // Remove common markdown fences
+            let s = raw.trim();
+            s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
+            // Find first JSON object or array via bracket matching
+            const startIdx = (() => {
+                const obj = s.indexOf('{');
+                const arr = s.indexOf('[');
+                if (obj === -1) return arr;
+                if (arr === -1) return obj;
+                return Math.min(obj, arr);
+            })();
+            if (startIdx < 0) return null;
+            const openChar = s[startIdx];
+            const closeChar = openChar === '{' ? '}' : ']';
+            let depth = 0;
+            let endIdx = -1;
+            for (let i = startIdx; i < s.length; i++) {
+                const ch = s[i];
+                if (ch === '"') {
+                    // skip strings
+                    i++;
+                    while (i < s.length) {
+                        if (s[i] === '"' && s[i - 1] !== '\\') break;
+                        i++;
+                    }
+                    continue;
+                }
+                if (ch === openChar) depth++;
+                else if (ch === closeChar) depth--;
+                if (depth === 0) { endIdx = i + 1; break; }
+            }
+            const candidate = endIdx > 0 ? s.slice(startIdx, endIdx) : s;
+            try {
+                return JSON.parse(candidate);
+            } catch (e) {
+                console.error('Failed to parse AI JSON. Raw output:', raw);
+                return null;
+            }
+        };
+
+        const parsed = safeParseJSON(feedbackText);
+        if (!parsed) {
+            setStatusText('Error: Received malformed analysis from AI. Please try again.');
+            // Preserve raw for debugging
+            await kv.set(`resume:${uuid}:raw`, feedbackText);
+            setIsProcessing(false);
+            return;
+        }
+
+        data.feedback = parsed;
         await kv.set(`resume:${uuid}`, JSON.stringify(data));
         setStatusText('Analysis Complete, redirecting...');
         console.log(data);

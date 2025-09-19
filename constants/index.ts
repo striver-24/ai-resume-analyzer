@@ -110,7 +110,7 @@ export const AIResponseFormat = `
         whyTheyAsk: string;
         strongAnswer: string;
         followUps?: string[];
-      }[]; // 6–10 items
+      }[]; // 10–12 items, must directly relate to both the job description and the resume content
     };
   }
 
@@ -130,6 +130,7 @@ export const AIResponseFormat = `
       page?: number;            // starts at 1 if known
       line?: number;            // rough line number
       sectionGuess?: string;    // e.g., "Experience", "Summary"
+      source?: "JD" | "ATS";  // tag whether the suggestion is driven by JD alignment or ATS best practices
     }[]; // 3–8 per category if applicable
   }`;
 
@@ -152,5 +153,6 @@ export const prepareInstructions = ({
   Provide the feedback using the following format: ${AIResponseFormat}
   Return the analysis as a JSON object, without any other text and without the backticks.
   Focus problems[].snippet on short, recognizable text spans from the resume where possible.
-  Generate mockInterview.questions that directly reflect resume strengths/weaknesses.
+  Generate mockInterview.questions that directly reflect resume strengths/weaknesses and the job description; ensure there are 10–12.
+  Provide improvement suggestions mapped with tags: source: "JD" or "ATS" for each suggestion.
   Do not include any other text or comments.`;

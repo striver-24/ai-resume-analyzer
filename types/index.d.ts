@@ -22,6 +22,7 @@ interface CategoryProblem {
     page?: number;
     line?: number;
     sectionGuess?: string;
+    source?: "JD" | "ATS"; // mapping tag for improvement suggestions
 }
 
 interface CategoryFeedback {

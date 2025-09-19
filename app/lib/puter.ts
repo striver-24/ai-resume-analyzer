@@ -128,8 +128,10 @@ export const usePuterStore = create<PuterStore>((set, get) => {
 
         try {
             const isSignedIn = await puter.auth.isSignedIn();
+            console.debug('[Auth] checkAuthStatus -> isSignedIn', isSignedIn);
             if (isSignedIn) {
                 const user = await puter.auth.getUser();
+                console.debug('[Auth] checkAuthStatus -> user', user);
                 set({
                     auth: {
                         user,
@@ -180,21 +182,22 @@ export const usePuterStore = create<PuterStore>((set, get) => {
             if (clientId) {
                 const origin = typeof window !== 'undefined' ? window.location.origin : undefined;
                 const redirect_uri = origin ? origin + '/auth' : undefined;
+                console.debug('[Auth] Starting Google sign-in via Puter', { origin, redirect_uri });
                 await (puter.auth as any).signIn({
                     provider: 'google',
                     client_id: clientId,
                     redirect_uri,
-                    // Prefer popup when available to avoid full-page navigation
                     use_popup: true,
-                    // Helpful prompt to choose account when users have multiple
                     prompt: 'select_account'
                 });
             } else {
+                console.debug('[Auth] Starting default Puter sign-in');
                 await puter.auth.signIn();
             }
             await checkAuthStatus();
         } catch (err) {
             const msg = err instanceof Error ? err.message : "Sign in failed";
+            console.error('[Auth] Sign-in error', err);
             setError(msg);
         }
     };
@@ -260,6 +263,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
     const init = (): void => {
         const puter = getPuter();
         if (puter) {
+            console.debug('[Auth] Puter.js detected, initializing');
             set({ puterReady: true });
             checkAuthStatus();
             return;
