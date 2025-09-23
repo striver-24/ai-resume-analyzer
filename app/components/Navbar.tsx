@@ -51,7 +51,7 @@ const Navbar = () => {
         </Link>
         {auth.isAuthenticated && (
           <Link to="/resumes" className="rounded-full px-4 py-2 border border-gray-200 hidden sm:block">
-            Your Scanned Resumes
+            Scanned Resumes
           </Link>
         )}
 
