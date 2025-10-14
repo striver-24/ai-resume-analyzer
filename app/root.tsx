@@ -9,7 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import {usePuterStore} from "~/lib/puter";
+import {useApiStore} from "~/lib/api";
 import {useEffect} from "react";
 
 export const links: Route.LinksFunction = () => [
@@ -26,11 +26,14 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { init } = usePuterStore();
+  const init = useApiStore((state) => state.init);
 
   useEffect(() => {
-        init()
-  }, [init]);
+    if (typeof window !== 'undefined') {
+      init();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   return (
     <html lang="en">
@@ -41,7 +44,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <script src="https://js.puter.com/v2/"></script>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -52,6 +54,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />;
+}
+
+export function HydrateFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+        <p className="text-lg font-semibold text-gray-700">Loading Resume Analyzer...</p>
+      </div>
+    </div>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

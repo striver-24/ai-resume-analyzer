@@ -1,9 +1,11 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate, useParams} from "react-router";
-import {usePuterStore} from "~/lib/puter";
+import {useApiStore} from "~/lib/api";
 import ATS from "~/components/ATS";
 import MockInterview from "~/components/MockInterview";
 import ImprovementsDropdown from "~/components/ImprovementsDropdown";
+import EditWithAIButton from "~/components/EditWithAIButton";
+import CreateMarkdownResumeButton from "~/components/CreateMarkdownResumeButton";
 import Footer from "~/components/Footer";
 
 export const meta =() => ([
@@ -12,13 +14,15 @@ export const meta =() => ([
 ])
 
 const Resume = () => {
-    const { auth, isLoading, fs, kv } = usePuterStore();
+    const { auth, isLoading, fs, kv } = useApiStore();
     const { id } = useParams();
     const [imageUrl, setImageUrl] = useState('');
     const [resumeUrl, setResumeUrl] = useState('');
     const [feedback, setFeedback] = useState<Feedback | null>(null);
     const [jobTitle, setJobTitle] = useState<string>("");
     const [jobDescription, setJobDescription] = useState<string>("");
+    const [resumePath, setResumePath] = useState<string>("");
+    const [imagePath, setImagePath] = useState<string>("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -48,6 +52,8 @@ const Resume = () => {
             setFeedback(data.feedback);
             setJobTitle(data.jobTitle || "");
             setJobDescription(data.jobDescription || "");
+            setResumePath(data.resumePath || "");
+            setImagePath(data.imagePath || "");
             console.log({ resumeUrl, imageUrl, feedback: data.feedback, jobTitle: data.jobTitle, jobDescription: data.jobDescription });
         }
 
@@ -78,7 +84,36 @@ const Resume = () => {
                     )}
                 </section>
                 <section className="feedback-section">
-                    <h2 className="text-4xl !text-blavk font-bold">Resume Review</h2>
+                    <div className="flex flex-col gap-4 mb-4">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-4xl !text-black font-bold">Resume Review</h2>
+                            {feedback && id && resumePath && (
+                                <EditWithAIButton 
+                                    resumeId={id} 
+                                    feedback={feedback} 
+                                    resumePath={resumePath}
+                                    imagePath={imagePath}
+                                />
+                            )}
+                        </div>
+                        {feedback && id && resumePath && (
+                            <div className="flex gap-2">
+                                <CreateMarkdownResumeButton 
+                                    resumeId={id} 
+                                    resumePath={resumePath}
+                                />
+                                <Link 
+                                    to="/editor/new"
+                                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Start Fresh Resume
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                     {feedback ? (
                         <div className="flex flex-col gap-6 animate-in fade-in duration-1000">
                             <ATS score={feedback.ATS.score || 0} />

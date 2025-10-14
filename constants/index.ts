@@ -96,7 +96,7 @@ export const AIResponseFormat = `
     overallScore: number; //max 100
     ATS: {
       score: number;
-      tips: { type: "good" | "improve"; tip: string; }[];
+      tips: { type: "good" | "improve"; tip: string; }[]; // 2-3 items
     };
 
     toneAndStyle: CategoryFeedback;
@@ -109,8 +109,8 @@ export const AIResponseFormat = `
         question: string;
         whyTheyAsk: string;
         strongAnswer: string;
-        followUps?: string[];
-      }[]; // 10–12 items, must directly relate to both the job description and the resume content
+        followUps?: string[]; // optional, 1-2 max
+      }[]; // 8-10 items (reduced from 10-12)
     };
   }
 
@@ -118,20 +118,20 @@ export const AIResponseFormat = `
     score: number; //max 100
     tips: {
       type: "good" | "improve";
-      tip: string; // short title
-      explanation: string; // detailed explanation
-    }[]; // 3–4 tips
+      tip: string; // short title (max 50 chars)
+      explanation: string; // concise (max 150 chars)
+    }[]; // 2-3 tips (reduced from 3-4)
 
     problems: {
-      snippet: string;          // exact text or a short paraphrase from resume that needs change
-      reason: string;           // why this is a problem
-      suggestion: string;       // how to fix
-      severity?: "low" | "med" | "high"; // drives color if you want
-      page?: number;            // starts at 1 if known
-      line?: number;            // rough line number
+      snippet: string;          // exact text from resume (max 100 chars)
+      reason: string;           // why problematic (max 100 chars)
+      suggestion: string;       // fix suggestion (max 150 chars)
+      severity?: "low" | "med" | "high";
+      page?: number;
+      line?: number;
       sectionGuess?: string;    // e.g., "Experience", "Summary"
-      source?: "JD" | "ATS";  // tag whether the suggestion is driven by JD alignment or ATS best practices
-    }[]; // 3–8 per category if applicable
+      source?: "JD" | "ATS";
+    }[]; // 3-5 per category (reduced from 3-8)
   }`;
 
 export const prepareInstructions = ({
@@ -142,17 +142,20 @@ export const prepareInstructions = ({
     jobDescription: string;
 }) =>
     `You are an expert in ATS (Applicant Tracking System) and resume analysis.
-  Please analyze and rate this resume and suggest how to improve it.
-  The rating can be low if the resume is bad.
-  Be thorough and detailed. Don't be afraid to point out any mistakes or areas for improvement.
-  If there is a lot to improve, don't hesitate to give low scores. This is to help the user to improve their resume.
-  If available, use the job description for the job user is applying to to give more detailed feedback.
-  If provided, take the job description into consideration.
-  The job title is: ${jobTitle}
-  The job description is: ${jobDescription}
-  Provide the feedback using the following format: ${AIResponseFormat}
-  Return the analysis as a JSON object, without any other text and without the backticks.
-  Focus problems[].snippet on short, recognizable text spans from the resume where possible.
-  Generate mockInterview.questions that directly reflect resume strengths/weaknesses and the job description; ensure there are 10–12.
-  Provide improvement suggestions mapped with tags: source: "JD" or "ATS" for each suggestion.
-  Do not include any other text or comments.`;
+  Analyze this resume and provide detailed feedback. Be thorough and honest with ratings.
+  
+  Job Title: ${jobTitle}
+  Job Description: ${jobDescription}
+  
+  IMPORTANT: Return ONLY valid JSON (no markdown code fences, no extra text).
+  Format: ${AIResponseFormat}
+  
+  Requirements:
+  - Provide 2-3 tips per category (concise but specific)
+  - Provide 3-5 problems per category with actionable suggestions
+  - Include 8-10 mock interview questions (not 10-12, to save tokens)
+  - Tag each problem with source: "JD" or "ATS"
+  - Keep explanations under 2 sentences each
+  - Use exact text snippets from resume where possible
+  
+  Return JSON only:`;

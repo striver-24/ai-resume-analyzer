@@ -1,180 +1,206 @@
-# StackResume.ai – Crack your dream job using AI
+# 🎯 AI Resume Analyzer
 
-An AI-powered resume analyzer that helps you optimize your resume for Applicant Tracking Systems (ATS) and real-world job descriptions. Upload your resume (PDF), get instant feedback, actionable tips, and track your history — all powered by Puter.js storage and AI services.
+A modern, AI-powered resume analysis platform built with React, powered by Google Cloud Platform, Neon PostgreSQL, and deployed on Vercel.
 
-- Live tagline: "Crack your dream job using AI"
-- Built with React Router, TypeScript, Tailwind CSS, and Puter.js
+## ✨ Features
 
-## Table of Contents
-- What is StackResume.ai?
-- Key Features
-- Demo & Screenshots
-- Tech Stack
-- Getting Started
-  - Prerequisites
-  - Installation
-  - Development
-  - Build
-  - Start (serve production build)
-- Usage Guide
-  - Home
-  - Upload & Analyze
-  - Review Resume
-  - Profile Menu & History
-  - Wipe App Data
-- Configuration Notes
-- Available Scripts
-- Troubleshooting
-- Contributing
-- License
-- Acknowledgements
+### Core Functionality
+- **Smart Resume Analysis**: AI-powered resume scoring and feedback using Google Vertex AI
+- **ATS Compatibility Check**: Ensure your resume passes Applicant Tracking Systems
+- **Markdown Resume Editor**: Create and edit resumes using Markdown with live preview
+- **AI-Powered Suggestions**: Apply AI improvements directly to your resume
+- **Multiple Templates**: Choose from 5+ professional resume templates
+
+### Technical Features
+- **Secure Authentication**: Google OAuth integration
+- **Cloud Storage**: Resume files stored securely in Google Cloud Storage
+- **Real-time Analysis**: Instant feedback and improvement suggestions
+- **User Dashboard**: Manage multiple resumes and track improvements
+- **OCR Support**: Extract text from PDF and image resumes
+- **Chat Interface**: Ask questions about your resume
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18 or higher
+- npm or yarn
+- [Neon PostgreSQL account](https://neon.tech)
+- [Google Cloud Platform account](https://console.cloud.google.com)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd ai-resume-analyzer
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your credentials (see Setup Guides below)
+
+# Initialize database
+psql "$DATABASE_URL" -f schema.sql
+
+# Test database connection
+npm run test:db
+
+# Start development server
+npm run dev
+```
+
+Visit `http://localhost:5173` to see the app!
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](./QUICKSTART.md)** - Get up and running in 5 minutes
+- **[NEON_SETUP.md](./NEON_SETUP.md)** - Complete Neon database setup guide
+- **[GCP_SETUP.md](./GCP_SETUP.md)** - Google Cloud Platform configuration
+- **[VERTEX_AI_IMPLEMENTATION.md](./VERTEX_AI_IMPLEMENTATION.md)** - Vertex AI integration details
+- **[RESUME_EDITOR_IMPLEMENTATION.md](./RESUME_EDITOR_IMPLEMENTATION.md)** - Markdown editor guide
+
+## 🎨 Resume Editor
+
+Create beautiful resumes using Markdown with live preview:
+
+```markdown
+---
+name: Your Name
+header:
+  - text: email@example.com
+    link: mailto:email@example.com
+themeColor: '#2563eb'
+---
+
+## Experience
+**Software Engineer** | Company | *2020 - Present*
+- Led development of features serving 1M+ users
+```
+
+**Features**:
+- ✅ Live preview as you type
+- ✅ 5+ professional templates
+- ✅ Apply AI suggestions automatically
+- ✅ Export to PDF (coming soon)
+- ✅ Syntax highlighting
+- ✅ Easy formatting with Markdown
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **React 19** - UI framework
+- **React Router 7** - Routing
+- **Zustand** - State management
+- **Tailwind CSS** - Styling
+- **Vite** - Build tool
+
+### Backend
+- **Vercel** - Serverless functions & hosting
+- **Neon PostgreSQL** - Database
+- **Google Cloud Storage** - File storage
+- **Google OAuth 2.0** - Authentication
+- **Vertex AI (Gemini)** - AI-powered analysis
+- **Markdown-it** - Markdown parsing
+
+## 🏗️ Architecture
+
+```
+Client (React) → API (Vercel) → Services (Neon, GCS, OAuth)
+```
+
+All client state management uses Zustand, which communicates with Vercel serverless functions. These functions integrate with:
+- **Neon PostgreSQL** for data persistence
+- **Google Cloud Storage** for file storage
+- **Google OAuth** for authentication
+
+## 📦 Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run test:db      # Test database connection
+npm run test:ai      # Test Vertex AI integration
+npm run typecheck    # TypeScript type checking
+npm run db:init      # Initialize database schema
+```
+
+## 🚢 Deployment
+
+Deploy to Vercel in minutes:
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+vercel
+
+# Set environment variables
+vercel env add DATABASE_URL
+vercel env add GOOGLE_CLIENT_ID
+vercel env add GOOGLE_CLIENT_SECRET
+# ... add other variables
+
+# Deploy to production
+vercel --prod
+```
+
+See [GCP_SETUP.md](./GCP_SETUP.md) for complete deployment guide.
+
+## 🔐 Environment Variables
+
+Required environment variables (see `.env.example`):
+
+```bash
+# Database
+DATABASE_URL=postgresql://...
+
+# Google Cloud
+GCP_PROJECT_ID=your-project-id
+GCS_BUCKET_NAME=your-bucket
+GOOGLE_APPLICATION_CREDENTIALS=./path/to/key.json
+
+# OAuth
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+
+# Security
+SESSION_SECRET=your-random-secret
+```
+
+## 🗂️ Project Structure
+
+```
+├── api/                    # Vercel serverless functions
+│   ├── auth/              # Authentication endpoints
+│   ├── files/             # File storage endpoints
+│   └── kv/                # Key-value store endpoints
+├── app/
+│   ├── lib/               # Utilities (auth, db, storage)
+│   ├── routes/            # React Router routes
+│   └── components/        # React components
+├── public/                # Static assets
+└── schema.sql             # Database schema
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-repo/issues)
+- **Documentation**: See `/docs` folder
+- **Email**: your-email@example.com
 
 ---
 
-## What is StackResume.ai?
-StackResume.ai gives you quick, actionable feedback on your resume against a job description. It analyzes tone, content, structure, and skills, and returns an ATS-oriented score along with prioritized improvement tips.
-
-## Key Features
-- Resume Upload (PDF): Convert to image for preview, store both assets in Puter drive.
-- AI Feedback: Uses Puter AI chat API to generate structured, multi-category feedback.
-- ATS Insights: Overall score plus category-wise breakdown and tips.
-- History: View your recent analyses from the profile menu.
-- Public Homepage: See tagline and sample resumes even when signed out.
-- Auth Flow: Sign in/out via Puter auth; redirect back to the page you came from.
-- Data Wipe: A dedicated Danger Zone to wipe files and KV data safely with confirmation.
-
-## Demo & Screenshots
-These are representative screenshots from the app UI.
-
-- Home (public): shows tagline and sample resumes
-  
-  ![Home samples](/public/images/resume_01.png)
-
-- Upload in progress (scan animation)
-  
-  ![Scan](/public/images/resume-scan.gif)
-
-- Review screen with preview and feedback
-  
-  ![Scan 2](/public/images/resume-scan-2.gif)
-
-Note: Direct file preview thumbnails are generated from your uploaded PDF and stored locally in your Puter drive.
-
-## Tech Stack
-- React Router (v7 app template) – client-side routing
-- TypeScript – types and safety
-- Tailwind CSS – styling
-- Puter.js – Auth, File System (fs), Key-Value (kv), and AI services
-- React Router v7 Dev/Build tooling – dev server & build
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+ and npm 9+
-- A browser environment that loads Puter.js (the app expects `window.puter` at runtime)
-
-### Installation
-```bash
-npm install
-```
-
-### Development
-Start the dev server with HMR (React Router Dev):
-```bash
-npm run dev
-```
-The app typically runs at http://localhost:3000.
-
-### Build
-```bash
-npm run build
-```
-
-### Start (serve production build)
-After building, serve with React Router Serve:
-```bash
-npm run start
-```
-
-## Usage Guide
-
-### Home
-- Publicly accessible. Shows the tagline and sample resumes when there’s no history.
-- If signed in and you have saved analyses, your latest resumes are displayed.
-
-### Upload & Analyze
-- Navigate to Upload.
-- Fill in Company Name, Job Title, and Job Description.
-- Upload your resume (PDF). The app:
-  - Uploads the PDF to Puter.fs
-  - Converts the first page to an image preview
-  - Calls Puter.ai.chat with a structured prompt
-  - Saves interim and final data to Puter.kv under keys like `resume:<uuid>`
-- You’ll be redirected to the review page once analysis is completed.
-
-### Review Resume
-- Route: `/resume/:id`
-- Shows a preview image (click to open PDF) and structured feedback sections:
-  - ATS
-  - Tone & Style
-  - Content
-  - Structure
-  - Skills
-
-### Profile Menu & History
-- When signed in, click the avatar in the Navbar to open the profile menu.
-- See up to 5 recent resume analyses and navigate to any of them quickly.
-- Sign out from here or go to the Wipe App Data screen.
-
-### Wipe App Data
-- Route: `/wipe`
-- Auth required. Shows counts of files in root and saved resumes in KV.
-- Type `wipe` to confirm, then click "Wipe App Data" to delete all files and flush KV.
-
-## Configuration Notes
-- SSR is disabled in `react-router.config.ts` (SPA mode):
-  ```ts
-  export default { ssr: false };
-  ```
-- Puter.js is required at runtime. The zustand store in `app/lib/puter.ts` waits for `window.puter` and surfaces helpful error messages (e.g., "Puter.js not available").
-- Resume KV keys follow the pattern `resume:<uuid>`. Listing uses `kv.list('resume:*', true)` to fetch values.
-
-### Google Auth via Puter.js
-- Optional: You can enable Google Sign-In using Puter.js by providing a Google OAuth Client ID via environment variables.
-- Create a `.env` (or `.env.local`) file based on `.env.example` and set:
-  ```env
-  VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
-  ```
-- When this variable is set, the app will call `puter.auth.signIn({ provider: 'google', client_id: VITE_GOOGLE_CLIENT_ID })` during login.
-- If not set, it will fall back to the default `puter.auth.signIn()` behavior.
-
-## Available Scripts
-- `dev` – Start development server with HMR (React Router Dev)
-- `build` – Build for production (React Router Build)
-- `start` – Serve the production build (React Router Serve)
-
-Refer to `package.json` for the full list.
-
-## Troubleshooting
-- Puter.js not available / auth issues
-  - Ensure the app runs in an environment where `window.puter` is injected.
-  - The store retries for up to 10 seconds; check console for errors.
-- No resumes appear on Home
-  - Confirm that your uploads succeeded and KV contains keys like `resume:<uuid>`.
-- Stuck on auth page after sign in
-  - The app uses `/auth?next=/desired/path` for redirection. Ensure the `next` query param is present when navigating to `/auth`.
-- Clicking "Continue with Google" goes to a Puter configuration page
-  - Ensure you have set `VITE_GOOGLE_CLIENT_ID` in your `.env` and restarted the dev server.
-  - In your Google Cloud Console, add an authorized redirect URI that matches your app (e.g., `http://localhost:3000/auth` for local dev). This repo passes `redirect_uri` as `${window.location.origin}/auth`.
-  - In your Puter app settings, enable Google as a provider (if applicable) and make sure the client ID matches the one configured.
-  - If the provider still opens in a new tab instead of a popup, check for popup blockers or try again; we request `use_popup: true` when possible.
-
-## Contributing
-Contributions are welcome! Please open an issue to discuss improvements or submit a PR with a clear description of changes.
-
-## License
-This project is provided as-is. If you need a formal license, add it here (e.g., MIT) and include a LICENSE file.
-
-## Acknowledgements
-- © 2025 Deivyansh Singh
-- Built with React Router, Tailwind, and Puter.js APIs.
+Built with ❤️ using React, Neon, and Google Cloud Platform

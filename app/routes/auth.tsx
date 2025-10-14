@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from "react";
-import {usePuterStore} from "~/lib/puter";
+import {useApiStore} from "~/lib/api";
 import Footer from "~/components/Footer";
 import {useLocation, useNavigate} from "react-router";
 
@@ -9,7 +9,7 @@ export const meta =() => ([
 ])
 
 const Auth = () => {
-    const { isLoading, auth, error } = usePuterStore();
+    const { isLoading, auth, error } = useApiStore();
     const location = useLocation();
     const params = new URLSearchParams(location.search);
     const nextParam = params.get('next');

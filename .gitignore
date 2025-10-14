@@ -4,3 +4,20 @@
 # React Router
 /.react-router/
 /build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Google Cloud credentials (NEVER commit these!)
+service-account-key.json
+*-service-account.json
+credentials.json
+
+# Vercel
+.vercel
+
+# IDE
+.vscode/
+.idea/

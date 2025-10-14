@@ -150,3 +150,80 @@ form {
         opacity: 1;
     }
 }
+
+/* Resume Editor Styles */
+.editor-panel {
+    @apply bg-white rounded-2xl shadow-sm overflow-hidden transition-all;
+}
+
+.editor-toolbar {
+    @apply flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white;
+}
+
+.editor-textarea {
+    @apply w-full h-full p-6 font-mono text-sm resize-none focus:outline-none border-none;
+    line-height: 1.6;
+    tab-size: 2;
+}
+
+.editor-textarea:focus {
+    @apply ring-0 outline-none;
+}
+
+.template-card {
+    @apply p-6 border-2 rounded-xl cursor-pointer transition-all;
+    transform: translateY(0);
+}
+
+.template-card:hover {
+    @apply shadow-lg;
+    transform: translateY(-2px);
+}
+
+.template-card.selected {
+    @apply border-blue-500 bg-blue-50;
+}
+
+.template-card:not(.selected) {
+    @apply border-gray-200;
+}
+
+.template-card:not(.selected):hover {
+    @apply border-blue-300;
+}
+
+.markdown-tip-button {
+    @apply px-3 py-1.5 bg-white border border-blue-200 rounded-lg text-sm transition-all;
+}
+
+.markdown-tip-button:hover {
+    @apply bg-blue-100 shadow-sm;
+}
+
+.preview-paper {
+    @apply max-w-[800px] mx-auto bg-white shadow-lg rounded-lg p-12 min-h-[11in];
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 10px 20px -2px rgba(0, 0, 0, 0.05);
+}
+
+.live-indicator {
+    @apply w-2 h-2 bg-green-500 rounded-full animate-pulse;
+}
+
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-backdrop {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    animation: slideInFromBottom 0.3s ease-out;
+}

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import Navbar from "~/components/Navbar";
 import Footer from "~/components/Footer";
 import ResumeCard from "~/components/ResumeCard";
-import { usePuterStore } from "~/lib/puter";
+import { useApiStore } from "~/lib/api";
+import type { KVItem } from "~/lib/api";
 import { Link, useNavigate } from "react-router";
 
 export const meta = () => ([
@@ -11,7 +12,7 @@ export const meta = () => ([
 ]);
 
 const Resumes = () => {
-  const { auth, isLoading, kv } = usePuterStore();
+  const { auth, isLoading, kv } = useApiStore();
   const navigate = useNavigate();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loadingResumes, setLoadingResumes] = useState(true);

@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router";
 import ScoreCircle from "~/components/ScoreCircle";
-import {usePuterStore} from "~/lib/puter";
+import {useApiStore} from "~/lib/api";
 
 const ResumeCard = ({ resume : {id, companyName, jobTitle, feedback, imagePath} }: { resume : Resume }) => {
-    const { fs } = usePuterStore();
+    const { fs } = useApiStore();
     const [resumeUrl, setResumeUrl] = useState('');
 
 

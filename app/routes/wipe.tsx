@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { usePuterStore } from "~/lib/puter";
+import { useApiStore } from "~/lib/api";
+import type { FSItem, KVItem } from "~/lib/api";
 import Navbar from "~/components/Navbar";
 import Footer from "~/components/Footer";
 
 const WipeApp = () => {
-  const { auth, isLoading, error, fs, kv } = usePuterStore();
+  const { auth, isLoading, error, fs, kv } = useApiStore();
   const navigate = useNavigate();
   const [files, setFiles] = useState<FSItem[]>([]);
   const [kvCount, setKvCount] = useState<number>(0);
@@ -67,7 +68,7 @@ const WipeApp = () => {
       <section className="main-section flex-1">
         <div className="page-heading py-16">
           <h1>Danger Zone</h1>
-          <h2>Wipe all app data from your Puter drive and KV store</h2>
+          <h2>Wipe all app data from your storage and database</h2>
         </div>
 
         <div className="w-full max-w-2xl gradient-border">
