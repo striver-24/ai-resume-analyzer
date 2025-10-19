@@ -1,8 +1,8 @@
+
 {
   "version": 2,
-  "buildCommand": "bash build.sh",
+  "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "framework": null,
   "outputDirectory": "build/client",
   "routes": [
     { "handle": "filesystem" },
