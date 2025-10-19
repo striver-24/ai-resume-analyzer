@@ -1,23 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npx react-router build",
-  "devCommand": "npm run dev",
+  "buildCommand": "npm run build",
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "build/client",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api/index"
-    }
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/api/index" }
   ],
   "functions": {
     "api/**/*.ts": {
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   }
 }
