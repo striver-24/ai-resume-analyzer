@@ -74,53 +74,41 @@ export function buildAnalysisPrompt(
     resumeText: string,
     jobDescription?: string
 ): string {
-    return `You are an expert ATS (Applicant Tracking System) analyst and career coach with 15+ years of experience in recruitment and resume optimization.
+    return `You are a Senior Talent Acquisition Specialist and a highly sophisticated Applicant Tracking System (ATS) engine. Your task is to perform a rigorous, direct, and quantifiable analysis based *only* on the provided Job Description (JD) and Candidate Resume.
 
-${jobDescription ? `TARGET POSITION:
+${jobDescription ? `JOB DESCRIPTION:
 ${jobDescription}
 
-` : ''}RESUME TO ANALYZE:
+` : ''}CANDIDATE RESUME:
 ${resumeText}
 
-ANALYSIS INSTRUCTIONS:
-Provide a comprehensive, data-driven analysis in strict JSON format. Your analysis must be:
-1. Objective and evidence-based
-2. Specific with actionable recommendations
-3. ATS-optimization focused
-4. Aligned with modern hiring practices
+Your response MUST be a single, structured JSON document containing the following mandatory sections:
 
-SCORING RUBRIC:
+1. **Match Score:** Calculate a single percentage (1-100%) indicating how well the resume aligns with the JD's mandatory and desired requirements (keywords, skills, technologies, and experience duration). A lower score should be given if critical skills are missing or mentioned only generically.
 
-ATS Score (0-100):
-- Formatting (20%): Layout simplicity, font choices, no complex elements
-- Keywords (30%): Job-relevant terms, industry jargon, skills matching
-- Structure (25%): Section organization, chronology, completeness
-- Content (25%): Relevance, achievements, measurability
+2. **Key Strengths & Relevant Keywords Found:** List specific skills, technologies, and achievements in the resume that directly match the JD, paying attention to the exact language used.
 
-Overall Score (0-100):
-- Professional presentation
-- Content quality and depth
-- Achievement quantification
-- Career progression clarity
-- Skills demonstration
+3. **Critical Gaps & Missing Requirements:** Identify *all* crucial mandatory skills or experience levels (e.g., '5 years experience,' 'React,' 'PostgreSQL') explicitly requested in the JD that are either missing from the resume or only vaguely referenced. This is the most important section for the recruiter.
+
+4. **ATS Optimization Suggestions:** Provide 3-5 specific, actionable suggestions for the candidate to modify their resume's wording, structure, or content to increase their ATS score against this specific JD. Focus on incorporating missing keywords and quantifying experience.
 
 OUTPUT FORMAT (strict JSON):
 {
-  "ats_score": <number 0-100>,
-  "overall_score": <number 0-100>,
+  "ats_score": <number 1-100>,
+  "overall_score": <number 1-100>,
   "strengths": [
-    "<specific strength with evidence>",
-    "<at least 3-5 items>"
+    "<specific skill/technology/achievement that matches JD with evidence>",
+    "<at least 3-5 items with exact keyword matches>"
   ],
   "weaknesses": [
-    "<specific weakness with impact>",
-    "<at least 3-5 items>"
+    "<critical missing skill or experience level from JD>",
+    "<at least 3-5 items with specific gaps>"
   ],
   "improvements": [
     {
-      "category": "<Formatting|Content|Keywords|Structure>",
-      "issue": "<what's wrong>",
-      "suggestion": "<how to fix it>",
+      "category": "<Keywords|Experience|Skills|Structure>",
+      "issue": "<specific missing requirement from JD>",
+      "suggestion": "<exact wording change to incorporate missing keyword>",
       "priority": "<high|medium|low>"
     }
   ],
@@ -128,24 +116,26 @@ OUTPUT FORMAT (strict JSON):
     {
       "name": "<section name>",
       "score": <0-100>,
-      "feedback": "<specific feedback for this section>"
+      "feedback": "<specific alignment feedback with JD requirements>"
     }
   ],
   "keywords": {
-    "present": ["<found relevant keywords>"],
-    "missing": ["<important missing keywords>"],
-    "suggestions": ["<keywords to add>"]
+    "present": ["<exact keywords found in both JD and resume>"],
+    "missing": ["<critical keywords from JD not in resume>"],
+    "suggestions": ["<specific keywords to add from JD>"]
   },
-  "summary": "<2-3 sentence executive summary>"
+  "summary": "<2-3 sentence professional, objective analysis of match quality>"
 }
 
 CRITICAL RULES:
 1. Return ONLY valid JSON (no markdown, no code blocks, no extra text)
-2. All scores must be integers between 0-100
-3. Provide at least 5 improvements
-4. Be specific - cite examples from the resume
-5. Prioritize ATS compatibility issues as HIGH
-${jobDescription ? '6. Focus heavily on job description alignment' : ''}
+2. All scores must be integers between 1-100
+3. Provide at least 5 actionable improvements
+4. Be ruthlessly specific - cite exact examples from resume and JD
+5. Lower scores significantly for missing mandatory requirements
+6. Focus on exact keyword matching between JD and resume
+7. Maintain professional, objective, analytical tone
+${jobDescription ? '8. Base ALL analysis strictly on JD alignment - this is a recruiter tool' : ''}
 
 Begin analysis:`;
 }
@@ -158,42 +148,42 @@ export function buildFeedbackPrompt(
     section: string,
     specificQuestion?: string
 ): string {
-    return `You are a professional resume consultant specializing in optimizing ${section} sections for maximum impact.
+    return `You are a Senior Talent Acquisition Specialist specializing in resume optimization for ATS systems and recruiter review.
 
 RESUME SECTION (${section}):
 ${resumeText}
 
-${specificQuestion ? `SPECIFIC QUESTION:\n${specificQuestion}\n\n` : ''}TASK:
-Provide detailed, actionable feedback for improving this ${section} section. Focus on:
+${specificQuestion ? `SPECIFIC QUESTION:\n${specificQuestion}\n\n` : ''}ANALYSIS TASK:
+Provide a rigorous, direct, and quantifiable analysis of this ${section} section. Your response must be structured in four parts:
 
-1. WHAT WORKS WELL:
-   - Identify strong elements
-   - Explain why they're effective
-   - Cite specific examples
+1. **Match Score (1-100%):** Rate this section's effectiveness for ATS parsing and recruiter appeal.
 
-2. WHAT NEEDS IMPROVEMENT:
-   - Identify weaknesses or gaps
-   - Explain the impact on hiring decisions
-   - Provide evidence-based reasoning
+2. **Key Strengths:** List specific elements that work well:
+   - Strong action verbs and quantifiable achievements
+   - Relevant keywords and technical terms
+   - Clear, ATS-friendly formatting
+   - Cite exact examples from the text
 
-3. SPECIFIC RECOMMENDATIONS:
-   - Actionable steps to improve
-   - Before/after examples where possible
-   - Industry best practices
-   - ATS optimization tips
+3. **Critical Gaps:** Identify specific weaknesses:
+   - Missing keywords or industry terms
+   - Vague or generic descriptions
+   - Lack of quantification or metrics
+   - ATS parsing issues
+   - Be ruthlessly specific about what's missing
 
-4. PRIORITY ACTIONS:
-   - Top 3 changes to make immediately
-   - Expected impact of each change
+4. **Optimization Suggestions:** Provide 3-5 actionable improvements:
+   - Exact wording changes to incorporate keywords
+   - How to quantify achievements with metrics
+   - Structural changes for better ATS parsing
+   - Before/after examples where applicable
 
-FORMAT:
-- Use clear headers and bullet points
-- Be specific and concrete
-- Provide examples
-- Keep response between 300-500 words
-- Professional but conversational tone
+RESPONSE FORMAT:
+Use clear Markdown formatting with headers (##) and bullet points (-).
+Maintain a professional, objective, analytical tone throughout.
+Keep total response between 300-500 words.
+Focus on practical, implementable changes.
 
-Begin feedback:`;
+Begin analysis:`;
 }
 
 /**
