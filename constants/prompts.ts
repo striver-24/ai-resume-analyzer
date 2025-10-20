@@ -72,72 +72,81 @@ export const ATS_CRITERIA = {
  */
 export function buildAnalysisPrompt(
     resumeText: string,
-    jobDescription?: string
+    jobDescription: string // JD is now MANDATORY for a high-quality analysis
 ): string {
-    return `You are a Senior Talent Acquisition Specialist and a highly sophisticated Applicant Tracking System (ATS) engine. Your task is to perform a rigorous, direct, and quantifiable analysis based *only* on the provided Job Description (JD) and Candidate Resume.
+    return `You are a Senior AI-Powered Applicant Tracking System (ATS) engine, operating under the persona of a **highly objective and meticulous Head Recruiter**. Your sole function is to calculate a detailed, weighted match score and provide actionable, objective feedback based *only* on the provided Job Description (JD) and Candidate Resume.
 
-${jobDescription ? `JOB DESCRIPTION:
+---
+**SCORING CRITERIA AND WEIGHTS (Total 100%):**
+- **Keywords Match:** ${ATS_CRITERIA.keywords.weight}% (Focus on skills, technologies, and exact JD terminology)
+- **Content Relevance:** ${ATS_CRITERIA.content.weight}% (Focus on experience duration, quantifiable achievements, and direct relevance to JD duties)
+- **Structure & Clarity:** ${ATS_CRITERIA.structure.weight}% (Focus on clear organization, reverse-chronology, and ease of human/machine parsing)
+- **ATS Formatting Compliance:** ${ATS_CRITERIA.formatting.weight}% (Focus on layout simplicity, standard fonts, and absence of critical parsing issues)
+---
+
+JOB DESCRIPTION (JD):
 ${jobDescription}
 
-` : ''}CANDIDATE RESUME:
+CANDIDATE RESUME:
 ${resumeText}
 
-Your response MUST be a single, structured JSON document containing the following mandatory sections:
+Your response MUST be a single, structured JSON document. Follow the output format and rules exactly.
 
-1. **Match Score:** Calculate a single percentage (1-100%) indicating how well the resume aligns with the JD's mandatory and desired requirements (keywords, skills, technologies, and experience duration). A lower score should be given if critical skills are missing or mentioned only generically.
+**CRITICAL TASK GUIDELINES:**
+1.  **Prioritize Mandatory Requirements:** Identify and penalize the score heavily for any missing **MANDATORY** skill, technology, or experience level explicitly stated in the JD. Missing one critical skill should drop the score significantly (e.g., -15 to -20 points).
+2.  **Quantify Alignment:** For every section, cite exact keywords, phrases, or numerical matches found.
+3.  **Strict JSON Output:** Return ONLY the valid JSON object. No pre-amble, markdown formatting (outside of strings), or code blocks.
+4.  All scores must be integers between 0-100.
 
-2. **Key Strengths & Relevant Keywords Found:** List specific skills, technologies, and achievements in the resume that directly match the JD, paying attention to the exact language used.
-
-3. **Critical Gaps & Missing Requirements:** Identify *all* crucial mandatory skills or experience levels (e.g., '5 years experience,' 'React,' 'PostgreSQL') explicitly requested in the JD that are either missing from the resume or only vaguely referenced. This is the most important section for the recruiter.
-
-4. **ATS Optimization Suggestions:** Provide 3-5 specific, actionable suggestions for the candidate to modify their resume's wording, structure, or content to increase their ATS score against this specific JD. Focus on incorporating missing keywords and quantifying experience.
-
-OUTPUT FORMAT (strict JSON):
+OUTPUT FORMAT (strict JSON for reliable parsing):
 {
-  "ats_score": <number 1-100>,
-  "overall_score": <number 1-100>,
-  "strengths": [
-    "<specific skill/technology/achievement that matches JD with evidence>",
-    "<at least 3-5 items with exact keyword matches>"
-  ],
-  "weaknesses": [
-    "<critical missing skill or experience level from JD>",
-    "<at least 3-5 items with specific gaps>"
-  ],
-  "improvements": [
-    {
-      "category": "<Keywords|Experience|Skills|Structure>",
-      "issue": "<specific missing requirement from JD>",
-      "suggestion": "<exact wording change to incorporate missing keyword>",
-      "priority": "<high|medium|low>"
+  "total_match_score": <number 0-100 - The final weighted score>,
+  "weighted_score_breakdown": {
+    "keywords": {
+      "score": <number 0-100>,
+      "weight": ${ATS_CRITERIA.keywords.weight},
+      "feedback": "<Specific critique based on keyword alignment. Mention top 3 missing critical keywords.>"
+    },
+    "content": {
+      "score": <number 0-100>,
+      "weight": ${ATS_CRITERIA.content.weight},
+      "feedback": "<Specific critique on relevance, quantification, and experience gaps/length.>"
+    },
+    "structure": {
+      "score": <number 0-100>,
+      "weight": ${ATS_CRITERIA.structure.weight},
+      "feedback": "<Critique on section flow, contact info completeness, and reverse chronology.>"
+    },
+    "formatting": {
+      "score": <number 0-100>,
+      "weight": ${ATS_CRITERIA.formatting.weight},
+      "feedback": "<Critique on layout, fonts, headers/footers, and parsing compliance.>"
     }
-  ],
-  "sections": [
-    {
-      "name": "<section name>",
-      "score": <0-100>,
-      "feedback": "<specific alignment feedback with JD requirements>"
-    }
-  ],
-  "keywords": {
-    "present": ["<exact keywords found in both JD and resume>"],
-    "missing": ["<critical keywords from JD not in resume>"],
-    "suggestions": ["<specific keywords to add from JD>"]
   },
-  "summary": "<2-3 sentence professional, objective analysis of match quality>"
+  "keywords_alignment": {
+    "critical_missing": ["<Critical mandatory skill/tech from JD not in resume>", "<at least 3 items>"],
+    "high_value_present": ["<Exact phrase/skill match from JD and resume>", "<at least 3 items>"],
+    "suggestions_for_next_revision": ["<Top 3 keywords from JD to integrate>", "..."]
+  },
+  "critical_gaps": [
+    {
+      "type": "<Skill|Experience Duration|Certification|Education>",
+      "requirement_from_jd": "<Exact JD requirement (e.g., 5+ years of React experience)>",
+      "evidence_in_resume": "<How the resume addresses/fails to address this (e.g., React mentioned in 1 job, total 1 year)>",
+      "priority": "<High|Critical>"
+    }
+  ],
+  "optimization_suggestions": [
+    {
+      "category": "<Keywords|Quantification|Structure|Formatting>",
+      "suggestion": "<Specific, actionable advice for a re-submission.>",
+      "priority_level": "<High|Medium>"
+    }
+  ],
+  "professional_summary": "<2-3 sentence objective verdict on the candidate's fit based strictly on the JD.>"
 }
 
-CRITICAL RULES:
-1. Return ONLY valid JSON (no markdown, no code blocks, no extra text)
-2. All scores must be integers between 1-100
-3. Provide at least 5 actionable improvements
-4. Be ruthlessly specific - cite exact examples from resume and JD
-5. Lower scores significantly for missing mandatory requirements
-6. Focus on exact keyword matching between JD and resume
-7. Maintain professional, objective, analytical tone
-${jobDescription ? '8. Base ALL analysis strictly on JD alignment - this is a recruiter tool' : ''}
-
-Begin analysis:`;
+Begin analysis and calculate the final weighted score based on the criteria: Keywords(${ATS_CRITERIA.keywords.weight}%), Content(${ATS_CRITERIA.content.weight}%), Structure(${ATS_CRITERIA.structure.weight}%), and Formatting(${ATS_CRITERIA.formatting.weight}%).`;
 }
 
 /**
