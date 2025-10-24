@@ -114,6 +114,11 @@ interface ApiStore {
         convertToMarkdown: (
             resumeText: string
         ) => Promise<string | undefined>;
+        rebuildResume: (
+            resumeText: string,
+            feedback: any,
+            jobDescription?: string
+        ) => Promise<string | undefined>;
     };
     kv: {
         get: (key: string) => Promise<string | null | undefined>;
@@ -373,10 +378,32 @@ export const useApiStore = create<ApiStore>((set, get) => {
             const result = await res.json();
             return result.markdown;
         } catch (err: any) {
-            setError(err?.message ?? "Markdown conversion failed");
+            setError(err?.message ?? "Failed to convert to markdown");
             return undefined;
         }
     };
+
+    const rebuildResume = async (
+        resumeText: string,
+        feedback: any,
+        jobDescription?: string
+    ): Promise<string | undefined> => {
+        try {
+            const res = await fetch(`${API_BASE}/api/ai/rebuild-resume`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ resumeText, feedback, jobDescription }),
+            });
+            if (!res.ok) throw new Error("Failed to rebuild resume");
+            const result = await res.json();
+            return result.rebuiltResume;
+        } catch (err: any) {
+            setError(err?.message ?? "Failed to rebuild resume");
+            return undefined;
+        }
+    };
+
 
     // KV: simple key-value backed by Neon (Postgres) through server endpoints
     const getKV = async (key: string) => {
@@ -491,6 +518,8 @@ export const useApiStore = create<ApiStore>((set, get) => {
             img2txt: (image: string | File | Blob, testMode?: boolean) =>
                 img2txt(image, testMode),
             convertToMarkdown: (resumeText: string) => convertToMarkdown(resumeText),
+            rebuildResume: (resumeText: string, feedback: any, jobDescription?: string) => 
+                rebuildResume(resumeText, feedback, jobDescription),
         },
         kv: {
             get: (key: string) => getKV(key),

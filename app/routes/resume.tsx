@@ -5,11 +5,12 @@ import ATS from "~/components/ATS";
 import MockInterview from "~/components/MockInterview";
 import ImprovementsDropdown from "~/components/ImprovementsDropdown";
 import EditWithAIButton from "~/components/EditWithAIButton";
-import CreateMarkdownResumeButton from "~/components/CreateMarkdownResumeButton";
+import ATSOptimizedResume from "~/components/ATSOptimizedResume";
+// import CreateMarkdownResumeButton from "~/components/CreateMarkdownResumeButton"; // Temporarily disabled
 import Footer from "~/components/Footer";
 
 export const meta =() => ([
-    { title: 'StackResume.ai | Review'},
+    { title: 'AI Resume Builder | Review'},
     {name: 'description', content: "Detailed overview of your Resume."},
 ])
 
@@ -24,6 +25,11 @@ const Resume = () => {
     const [resumePath, setResumePath] = useState<string>("");
     const [imagePath, setImagePath] = useState<string>("");
     const navigate = useNavigate();
+
+    // Console log for developer credit
+    useEffect(() => {
+        console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
+    }, []);
 
     useEffect(() => {
         if(!isLoading && !auth.isAuthenticated) navigate(`/auth?next=/resume/${id}`);
@@ -96,7 +102,8 @@ const Resume = () => {
                                 />
                             )}
                         </div>
-                        {feedback && id && resumePath && (
+                        {/* Create Resume Feature - Temporarily Disabled */}
+                        {/* {feedback && id && resumePath && (
                             <div className="flex gap-2">
                                 <CreateMarkdownResumeButton 
                                     resumeId={id} 
@@ -112,11 +119,21 @@ const Resume = () => {
                                     Start Fresh Resume
                                 </Link>
                             </div>
-                        )}
+                        )} */}
                     </div>
                     {feedback ? (
                         <div className="flex flex-col gap-6 animate-in fade-in duration-1000">
                             <ATS score={feedback.ATS.score || 0} />
+                            
+                            {/* ATS Optimized Resume Section */}
+                            {id && resumePath && (
+                                <ATSOptimizedResume 
+                                    resumeId={id} 
+                                    feedback={feedback}
+                                    resumePath={resumePath}
+                                />
+                            )}
+                            
                             <ImprovementsDropdown feedback={feedback} />
                             {feedback.mockInterview?.questions?.length ? (
                               <MockInterview questions={feedback.mockInterview.questions} jobTitle={jobTitle} />

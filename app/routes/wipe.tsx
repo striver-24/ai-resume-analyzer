@@ -14,6 +14,11 @@ const WipeApp = () => {
   const [working, setWorking] = useState(false);
   const [result, setResult] = useState<string>("");
 
+  // Console log for developer credit
+  useEffect(() => {
+    console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
+  }, []);
+
   const load = async () => {
     const listed = (await fs.readDir("./")) as FSItem[];
     setFiles(listed || []);

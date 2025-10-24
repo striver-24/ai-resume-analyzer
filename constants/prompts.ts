@@ -518,6 +518,96 @@ Begin analysis:`;
 }
 
 /**
+ * Resume Rebuild Prompt - Generate ATS-optimized version
+ */
+export function buildResumeRebuildPrompt(
+    resumeText: string,
+    feedback: any,
+    jobDescription?: string
+): string {
+    return `You are an expert resume writer and ATS optimization specialist. Your task is to rebuild the provided resume by applying ALL improvement suggestions and optimizations.
+
+ORIGINAL RESUME:
+${resumeText}
+
+${jobDescription ? `JOB DESCRIPTION:
+${jobDescription}
+
+` : ''}FEEDBACK AND SUGGESTIONS:
+${JSON.stringify(feedback, null, 2)}
+
+TASK:
+Rebuild this resume into a fully ATS-optimized version that:
+
+1. **Applies ALL Suggestions**: Incorporate every improvement from the feedback
+2. **ATS-Friendly Format**: Use clean, parseable formatting
+3. **Keyword Optimization**: Include all relevant keywords from job description (if provided)
+4. **Quantification**: Add or enhance metrics and quantifiable achievements
+5. **Strong Action Verbs**: Use impactful, industry-standard action verbs
+6. **Clear Structure**: Organize with standard sections and clear hierarchy
+7. **No Graphics/Tables**: Plain text format only, ATS-parseable
+8. **Professional Tone**: Maintain formal, professional language throughout
+
+STRUCTURE TO FOLLOW:
+[Full Name]
+[Phone] | [Email] | [Location] | [LinkedIn] | [GitHub/Portfolio]
+
+PROFESSIONAL SUMMARY
+2-3 sentence compelling summary highlighting key strengths and value proposition
+
+PROFESSIONAL EXPERIENCE
+[Job Title] | [Company Name] | [Location] | [Start Date - End Date]
+• Quantifiable achievement with metrics (increased/decreased/improved X by Y%)
+• Action verb + specific responsibility + business impact
+• Technical skills and tools used in context
+[Repeat for each position]
+
+EDUCATION
+[Degree] in [Field] | [University Name] | [Location] | [Graduation Year]
+• Relevant coursework, honors, or achievements (if applicable)
+
+SKILLS
+• Technical Skills: [List all relevant technical skills, tools, frameworks]
+• Soft Skills: [Key soft skills relevant to target role]
+• Certifications: [Any relevant certifications]
+
+PROJECTS (if relevant and space permits)
+[Project Name] | [Technologies Used] | [Date]
+• Brief description with quantifiable impact
+• Key technical contributions
+
+GUIDELINES:
+- Keep to 1 page if under 5 years experience, 2 pages maximum
+- Use standard fonts (would be Arial, Calibri, or similar)
+- Use consistent formatting (bullet points, dates, job titles)
+- No headers/footers
+- No tables or columns
+- No pronouns (I, me, my) - use implied first person
+- Start each bullet with strong action verb
+- Include numbers and metrics wherever possible
+- Prioritize most recent and relevant experience
+- Remove outdated or irrelevant information
+- Ensure no typos or grammatical errors
+
+CRITICAL IMPROVEMENTS TO APPLY:
+1. Replace weak/generic phrases with specific, quantified achievements
+2. Add missing keywords from job description (if provided)
+3. Fix any ATS formatting issues mentioned in feedback
+4. Strengthen professional summary with role-specific value proposition
+5. Ensure all dates are in consistent format
+6. Remove any graphics, tables, or complex formatting
+7. Optimize section order (Experience before Education for professionals)
+8. Add relevant technical skills missing from original
+
+OUTPUT FORMAT:
+Return ONLY the rebuilt resume text in plain text format.
+No markdown code blocks, no explanations, just the resume content.
+Use simple formatting with section headers in ALL CAPS, bullets as "•", and clear spacing.
+
+Begin rebuilding the resume now:`;
+}
+
+/**
  * Export all prompt builders
  */
 export const PromptBuilder = {
@@ -530,4 +620,5 @@ export const PromptBuilder = {
     coverLetter: buildCoverLetterPrompt,
     interviewPrep: buildInterviewPrepPrompt,
     inlineSuggestions: buildInlineSuggestionsPrompt,
+    rebuild: buildResumeRebuildPrompt,
 };

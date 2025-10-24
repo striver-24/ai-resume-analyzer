@@ -4,7 +4,7 @@ import Footer from "~/components/Footer";
 import {useLocation, useNavigate} from "react-router";
 
 export const meta =() => ([
-    { title: 'StackResume.ai | Auth'},
+    { title: 'AI Resume Builder | Auth'},
     { name: 'description', content: 'An account where you are logged in.' },
 ])
 
@@ -20,6 +20,11 @@ const Auth = () => {
     const navigate = useNavigate();
 
     const triedRef = useRef(false);
+
+    // Console log for developer credit
+    useEffect(() => {
+        console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
+    }, []);
 
     useEffect(() => {
         // When landing from OAuth, check/capture session then redirect

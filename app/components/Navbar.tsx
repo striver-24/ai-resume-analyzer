@@ -43,16 +43,17 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <Link to="/">
-        <p className="text-2xl font-bold text-gradient">StackResume.ai</p>
+        <p className="text-2xl font-bold text-gradient">AI Resume Builder</p>
       </Link>
 
       <div className="flex items-center gap-2 max-sm:flex-wrap">
         <Link to="/upload" className="primary-button w-fit max-sm:px-3 max-sm:py-1.5 max-sm:text-sm">
           Analyze Resume
         </Link>
-        <Link to="/editor/new" className="rounded-full px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 transition-all max-sm:px-3 max-sm:py-1.5 max-sm:text-sm">
+        {/* Create Resume Feature - Temporarily Disabled */}
+        {/* <Link to="/editor/new" className="rounded-full px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 transition-all max-sm:px-3 max-sm:py-1.5 max-sm:text-sm">
           Create Resume
-        </Link>
+        </Link> */}
         {auth.isAuthenticated && (
           <Link to="/resumes" className="rounded-full px-4 py-2 border border-gray-200 hidden sm:block">
             My Resumes

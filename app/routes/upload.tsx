@@ -19,6 +19,11 @@ const Upload = () => {
         status: 'pending' | 'processing' | 'completed' | 'error';
     }[]>([]);
 
+    // Console log for developer credit
+    useEffect(() => {
+        console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
+    }, []);
+
     // Require authentication for upload
     useEffect(() => {
         if (!isLoading && !auth.isAuthenticated) {

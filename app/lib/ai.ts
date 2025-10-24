@@ -100,7 +100,7 @@ export async function generateContent(
         model: VERTEX_AI_MODEL,
         generationConfig: {
             temperature: options?.temperature ?? 0.7,
-            maxOutputTokens: options?.maxTokens ?? 2048,
+            maxOutputTokens: options?.maxTokens ?? 8192, // Increased default for longer outputs
             topP: options?.topP ?? 0.95,
             topK: options?.topK ?? 40,
         },
@@ -170,11 +170,11 @@ export async function analyzeResume(
 ): Promise<ResumeAnalysis> {
     // Import prompt builder dynamically to avoid circular dependencies
     const { buildAnalysisPrompt } = await import('../../constants/prompts');
-    const prompt = buildAnalysisPrompt(resumeText, jobDescription);
+    const prompt = buildAnalysisPrompt(resumeText, jobDescription || '');
 
     const response = await generateContent(prompt, {
         temperature: 0.3, // Lower temperature for consistent structured output
-        maxTokens: 3000,
+        maxTokens: 8192, // Significantly increased to accommodate full analysis
     });
 
     // Parse JSON response
@@ -524,6 +524,34 @@ Begin conversion:`;
     // Clean up any potential markdown code fences from the response
     let cleaned = markdown.trim();
     cleaned = cleaned.replace(/^```(?:markdown|md)?\s*/i, '').replace(/\s*```\s*$/i, '');
+    
+    return cleaned;
+}
+
+/**
+ * Rebuild resume with all AI suggestions applied
+ */
+export async function rebuildResume(
+    resumeText: string,
+    feedback: any,
+    jobDescription?: string
+): Promise<string> {
+    const { buildResumeRebuildPrompt } = await import('../../constants/prompts');
+    const prompt = buildResumeRebuildPrompt(resumeText, feedback, jobDescription);
+
+    const rebuiltResume = await generateContent(prompt, {
+        temperature: 0.4, // Slightly higher for more creative improvements
+        maxTokens: 10000, // Increased significantly for complete resume generation
+    });
+
+    // Clean up the response
+    let cleaned = rebuiltResume.trim();
+    
+    // Remove any markdown code blocks
+    cleaned = cleaned.replace(/^```(?:text|plain|markdown)?\s*/i, '').replace(/\s*```\s*$/i, '');
+    
+    // Ensure proper spacing between sections
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
     
     return cleaned;
 }

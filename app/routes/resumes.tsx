@@ -7,7 +7,7 @@ import type { KVItem } from "~/lib/api";
 import { Link, useNavigate } from "react-router";
 
 export const meta = () => ([
-  { title: 'StackResume.ai | Your Scanned Resumes' },
+  { title: 'AI Resume Builder | Your Scanned Resumes' },
   { name: 'description', content: 'Your scanned resumes and AI feedback history' }
 ]);
 
@@ -16,6 +16,11 @@ const Resumes = () => {
   const navigate = useNavigate();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [loadingResumes, setLoadingResumes] = useState(true);
+
+  // Console log for developer credit
+  useEffect(() => {
+    console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
+  }, []);
 
   // Require authentication for viewing personal history
   useEffect(() => {

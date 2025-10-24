@@ -7,7 +7,7 @@ export default [
     route('/upload', 'routes/upload.tsx'),
     route('/resume/:id', 'routes/resume.tsx'),
     route('/resumes', 'routes/resumes.tsx'),
-    route('/editor/:id?', 'routes/editor.tsx'),
+    // route('/editor/:id?', 'routes/editor.tsx'), // Temporarily disabled - Create Resume feature
     route('/wipe', 'routes/wipe.tsx'),
     // Catch-all for .well-known and other special routes
     route('/.well-known/*', 'routes/well-known.tsx'),
