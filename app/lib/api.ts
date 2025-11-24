@@ -143,7 +143,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
     const checkAuthStatus = async (): Promise<boolean> => {
         set({ isLoading: true, error: null });
         try {
-            const res = await fetch(`${API_BASE}/api/auth/status`, { 
+            const res = await fetch(`${API_BASE}/api/auth?action=status`, { 
                 credentials: "include" 
             });
             if (!res.ok) throw new Error("Auth status failed");
@@ -175,7 +175,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
             const next = encodeURIComponent(
                 window.location.pathname + window.location.search
             );
-            window.location.href = `${API_BASE}/api/auth/signin?next=${next}`;
+            window.location.href = `${API_BASE}/api/auth?action=signin&next=${next}`;
         } catch (err: any) {
             setError(err?.message ?? "Sign in failed");
         }
@@ -184,7 +184,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
     const signOut = async (): Promise<void> => {
         set({ isLoading: true, error: null });
         try {
-            await fetch(`${API_BASE}/api/auth/signout`, { 
+            await fetch(`${API_BASE}/api/auth?action=signout`, { 
                 method: "POST", 
                 credentials: "include" 
             });
@@ -214,7 +214,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
         try {
             const form = new FormData();
             for (const f of files as File[]) form.append("files", f);
-            const res = await fetch(`${API_BASE}/api/files/upload`, {
+            const res = await fetch(`${API_BASE}/api/files?action=upload`, {
                 method: "POST",
                 body: form,
                 credentials: "include",
@@ -230,7 +230,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
     const readFile = async (path: string) => {
         try {
             const res = await fetch(
-                `${API_BASE}/api/files/read?path=${encodeURIComponent(path)}`,
+                `${API_BASE}/api/files?action=read&path=${encodeURIComponent(path)}`,
                 { credentials: "include" }
             );
             if (!res.ok) throw new Error("Read failed");
@@ -251,7 +251,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
             } else {
                 form.append("content", data);
             }
-            const res = await fetch(`${API_BASE}/api/files/write`, {
+            const res = await fetch(`${API_BASE}/api/files?action=write`, {
                 method: "POST",
                 body: form,
                 credentials: "include",
@@ -266,7 +266,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
 
     const deleteFile = async (path: string) => {
         try {
-            await fetch(`${API_BASE}/api/files/delete`, {
+            await fetch(`${API_BASE}/api/files?action=delete`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -280,7 +280,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
     const readDir = async (path: string) => {
         try {
             const res = await fetch(
-                `${API_BASE}/api/files/list?path=${encodeURIComponent(path)}`,
+                `${API_BASE}/api/files?action=list&path=${encodeURIComponent(path)}`,
                 { credentials: "include" }
             );
             if (!res.ok) throw new Error("List failed");
@@ -299,7 +299,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
         options?: ChatOptions
     ) => {
         try {
-            const res = await fetch(`${API_BASE}/api/ai/chat`, {
+            const res = await fetch(`${API_BASE}/api/ai?action=chat`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -315,7 +315,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
 
     const feedback = async (resumeText: string, instructions: string) => {
         try {
-            const res = await fetch(`${API_BASE}/api/ai/feedback`, {
+            const res = await fetch(`${API_BASE}/api/ai?action=feedback`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -352,7 +352,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
             if (testMode !== undefined) {
                 form.append("testMode", String(testMode));
             }
-            const res = await fetch(`${API_BASE}/api/ai/img2txt`, {
+            const res = await fetch(`${API_BASE}/api/ai?action=img2txt`, {
                 method: "POST",
                 body: form,
                 credentials: "include",
@@ -368,7 +368,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
 
     const convertToMarkdown = async (resumeText: string): Promise<string | undefined> => {
         try {
-            const res = await fetch(`${API_BASE}/api/ai/convert-to-markdown`, {
+            const res = await fetch(`${API_BASE}/api/ai?action=convert-to-markdown`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -389,7 +389,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
         jobDescription?: string
     ): Promise<string | undefined> => {
         try {
-            const res = await fetch(`${API_BASE}/api/ai/rebuild-resume`, {
+            const res = await fetch(`${API_BASE}/api/ai?action=rebuild-resume`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -409,7 +409,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
     const getKV = async (key: string) => {
         try {
             const res = await fetch(
-                `${API_BASE}/api/kv/get?key=${encodeURIComponent(key)}`,
+                `${API_BASE}/api/kv?action=get&key=${encodeURIComponent(key)}`,
                 { credentials: "include" }
             );
             if (!res.ok) return null;
@@ -423,7 +423,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
 
     const setKV = async (key: string, value: string) => {
         try {
-            const res = await fetch(`${API_BASE}/api/kv/set`, {
+            const res = await fetch(`${API_BASE}/api/kv?action=set`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -438,7 +438,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
 
     const deleteKV = async (key: string) => {
         try {
-            const res = await fetch(`${API_BASE}/api/kv/delete`, {
+            const res = await fetch(`${API_BASE}/api/kv?action=delete`, {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
@@ -454,7 +454,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
     const listKV = async (pattern: string, returnValues?: boolean) => {
         try {
             const res = await fetch(
-                `${API_BASE}/api/kv/list?pattern=${encodeURIComponent(
+                `${API_BASE}/api/kv?action=list&pattern=${encodeURIComponent(
                     pattern
                 )}&values=${!!returnValues}`,
                 { credentials: "include" }
@@ -471,7 +471,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
 
     const flushKV = async () => {
         try {
-            const res = await fetch(`${API_BASE}/api/kv/flush`, {
+            const res = await fetch(`${API_BASE}/api/kv?action=flush`, {
                 method: "POST",
                 credentials: "include",
             });

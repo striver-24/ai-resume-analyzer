@@ -237,7 +237,7 @@ export async function createPaymentOrder(
     const pricing = PRICING[planType];
 
     try {
-        const response = await fetch('/api/payments/create-order', {
+        const response = await fetch('/api/payments?action=create-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -282,7 +282,7 @@ export async function verifyPayment(
     paymentResponse: PaymentResponse
 ): Promise<{ success: boolean; message: string }> {
     try {
-        const response = await fetch('/api/payments/verify-payment', {
+        const response = await fetch('/api/payments?action=verify-payment', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -350,7 +350,38 @@ export async function initiatePayment(
 
         const pricing = PRICING[planType];
 
-        // Prepare checkout options
+        // Check if we're in test mode (order ID contains 'test')
+        const isTestMode = order.id.includes('test');
+
+        if (isTestMode) {
+            // In test mode, simulate payment without opening Razorpay
+            console.log('TEST MODE: Simulating payment...');
+            
+            // Simulate user completing payment
+            const mockPaymentResponse: PaymentResponse = {
+                razorpay_payment_id: `pay_test_${Date.now()}`,
+                razorpay_order_id: order.id,
+                razorpay_signature: `sig_test_${Date.now()}`,
+            };
+
+            try {
+                // Verify the simulated payment
+                const verification = await verifyPayment(mockPaymentResponse);
+
+                if (verification.success) {
+                    console.log('TEST MODE: Payment simulation successful');
+                    options?.onSuccess?.(mockPaymentResponse);
+                } else {
+                    throw new Error(verification.message);
+                }
+            } catch (error) {
+                console.error('TEST MODE: Payment simulation failed:', error);
+                options?.onError?.(error as Error);
+            }
+            return;
+        }
+
+        // Prepare checkout options for real Razorpay
         const checkoutOptions: RazorpayCheckoutOptions = {
             key: RAZORPAY_KEY_ID,
             order_id: order.id,

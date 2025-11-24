@@ -49,22 +49,28 @@ const Upload = () => {
             const formData = new FormData();
             formData.append('file', jdUploadFile);
 
-            const response = await fetch('/api/ai/extract-jd', {
+            const response = await fetch('/api/ai?action=extract-jd', {
                 method: 'POST',
                 body: formData,
                 credentials: 'include',
             });
 
+            const result = await response.json();
+
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to extract JD');
+                console.error('Server error:', result);
+                throw new Error(result.error || 'Failed to extract JD');
             }
 
-            const result = await response.json();
+            if (!result.success) {
+                console.error('Extraction failed:', result.error);
+                throw new Error(result.error || 'Failed to extract JD');
+            }
+
             return {
-                jobTitle: result.jobTitle,
-                companyName: result.companyName,
-                jobDescription: result.jobDescription,
+                jobTitle: result.jobTitle || 'Job Description',
+                companyName: result.companyName || 'Not specified',
+                jobDescription: result.jobDescription || '',
             };
         } catch (error) {
             console.error('Error extracting JD:', error);

@@ -18,7 +18,7 @@ export default function EditWithAIButton({ resumeId, feedback, resumePath, image
             // First, try to read existing markdown resume
             let markdown = '';
             try {
-                const readResponse = await fetch(`/api/files/read?path=${resumePath.replace('.pdf', '.md')}`);
+                const readResponse = await fetch(`/api/files?action=read&path=${resumePath.replace('.pdf', '.md')}`);
                 if (readResponse.ok) {
                     const readData = await readResponse.json();
                     markdown = readData.content || '';
@@ -32,7 +32,7 @@ export default function EditWithAIButton({ resumeId, feedback, resumePath, image
                 // Try OCR extraction using the actual image path
                 try {
                     console.log('🔍 Attempting OCR with image path:', imagePath);
-                    const ocrResponse = await fetch('/api/ai/img2txt', {
+                    const ocrResponse = await fetch('/api/ai?action=img2txt', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -58,7 +58,7 @@ export default function EditWithAIButton({ resumeId, feedback, resumePath, image
             }
 
             // Apply AI suggestions
-            const applyResponse = await fetch('/api/ai/apply-suggestions', {
+            const applyResponse = await fetch('/api/ai?action=apply-suggestions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -71,7 +71,7 @@ export default function EditWithAIButton({ resumeId, feedback, resumePath, image
                 const applyData = await applyResponse.json();
                 
                 // Save the updated markdown
-                const saveResponse = await fetch('/api/files/write', {
+                const saveResponse = await fetch('/api/files?action=write', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

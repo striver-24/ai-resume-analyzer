@@ -14,6 +14,7 @@
  * - Easy feature comparison
  */
 
+import React from 'react';
 import { PlanType, getPlanDetails } from '~/lib/razorpay';
 import { Check, X, Crown } from 'lucide-react';
 
@@ -158,12 +159,12 @@ export default function PlansComparisonTable({
 
                         {/* Features */}
                         {COMPARISON_FEATURES.map((section, sectionIdx) => (
-                            <tbody key={section.category}>
+                            <React.Fragment key={section.category}>
                                 {/* Category Header */}
-                                <tr className="bg-gray-50">
+                                <tr className="bg-gray-100 border-t-2 border-gray-200">
                                     <td
                                         colSpan={plans.length + 1}
-                                        className="px-6 py-3 text-sm font-semibold text-gray-900 uppercase tracking-wide"
+                                        className="px-6 py-4 text-sm font-semibold text-gray-900 uppercase tracking-wider"
                                     >
                                         {section.category}
                                     </td>
@@ -175,9 +176,9 @@ export default function PlansComparisonTable({
                                         key={feature}
                                         className={`border-b border-gray-200 ${
                                             featureIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                                        }`}
+                                        } hover:bg-indigo-50 transition-colors`}
                                     >
-                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">
                                             {feature}
                                         </td>
                                         {plans.map((plan) => (
@@ -194,7 +195,7 @@ export default function PlansComparisonTable({
                                         ))}
                                     </tr>
                                 ))}
-                            </tbody>
+                            </React.Fragment>
                         ))}
 
                         {/* CTA Row */}

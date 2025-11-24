@@ -46,7 +46,7 @@ export default function PlansRoute() {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await fetch('/api/auth/status', {
+                const response = await fetch('/api/auth?action=status', {
                     credentials: 'include',
                 });
 
