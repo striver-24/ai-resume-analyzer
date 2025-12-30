@@ -25,10 +25,7 @@ const Resume = () => {
     const [imagePath, setImagePath] = useState<string>("");
     const navigate = useNavigate();
 
-    // Console log for developer credit
-    useEffect(() => {
-        console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
-    }, []);
+
 
     useEffect(() => {
         if(!isLoading && !auth.isAuthenticated) navigate(`/auth?next=/resume/${id}`);
@@ -36,34 +33,67 @@ const Resume = () => {
 
     useEffect(() => {
         const loadResume = async () => {
-            const resume = await kv.get(`resume:${id}`);
+            try {
+                const resume = await kv.get(`resume:${id}`);
 
-            if(!resume) return;
+                if(!resume) {
+                    console.error('Resume not found in KV store');
+                    return;
+                }
 
-            const data = JSON.parse(resume);
+                let data;
+                try {
+                    data = JSON.parse(resume);
+                } catch (parseError) {
+                    console.error('Failed to parse resume data:', parseError);
+                    return;
+                }
 
-            const resumeBlob = await fs.read(data.resumePath);
-            if(!resumeBlob) return;
+                // Load PDF with retry
+                let resumeBlob;
+                for (let i = 0; i < 3; i++) {
+                    resumeBlob = await fs.read(data.resumePath);
+                    if (resumeBlob) break;
+                    await new Promise(r => setTimeout(r, 500 * (i + 1)));
+                }
+                
+                if (resumeBlob) {
+                    const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
+                    const resumeUrl = URL.createObjectURL(pdfBlob);
+                    setResumeUrl(resumeUrl);
+                } else {
+                    console.warn('Could not load resume PDF');
+                }
 
-            const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
-            const resumeUrl = URL.createObjectURL(pdfBlob);
-            setResumeUrl(resumeUrl);
+                // Load image with retry
+                let imageBlob;
+                for (let i = 0; i < 3; i++) {
+                    imageBlob = await fs.read(data.imagePath);
+                    if (imageBlob) break;
+                    await new Promise(r => setTimeout(r, 500 * (i + 1)));
+                }
+                
+                if (imageBlob) {
+                    const imageUrl = URL.createObjectURL(imageBlob);
+                    setImageUrl(imageUrl);
+                } else {
+                    console.warn('Could not load resume image');
+                }
 
-            const imageBlob = await fs.read(data.imagePath);
-            if(!imageBlob) return;
-            const imageUrl = URL.createObjectURL(imageBlob);
-            setImageUrl(imageUrl);
-
-            setFeedback(data.feedback);
-            setJobTitle(data.jobTitle || "");
-            setJobDescription(data.jobDescription || "");
-            setResumePath(data.resumePath || "");
-            setImagePath(data.imagePath || "");
-            console.log({ resumeUrl, imageUrl, feedback: data.feedback, jobTitle: data.jobTitle, jobDescription: data.jobDescription });
+                setFeedback(data.feedback);
+                setJobTitle(data.jobTitle || "");
+                setJobDescription(data.jobDescription || "");
+                setResumePath(data.resumePath || "");
+                setImagePath(data.imagePath || "");
+            } catch (error) {
+                console.error('Error loading resume:', error);
+            }
         }
 
-        loadResume();
-    }, [id])
+        if (id && auth.isAuthenticated) {
+            loadResume();
+        }
+    }, [id, auth.isAuthenticated])
 
 
     return (

@@ -9,6 +9,8 @@ export interface PdfConversionResult {
 
 let pdfjsLib: any = null;
 let loadPromise: Promise<any> | null = null;
+let initializationAttempts = 0;
+const MAX_INIT_ATTEMPTS = 3;
 
 function resolveWorkerSrc(): string {
   try {
@@ -39,20 +41,74 @@ async function loadPdfJs(): Promise<any> {
     }
     pdfjsLib = lib;
     return lib;
+  }).catch((err) => {
+    // Reset for retry
+    loadPromise = null;
+    throw err;
   });
 
   return loadPromise;
 }
 
-export async function convertPdfToImage(file: File): Promise<PdfConversionResult> {
+// Delay utility for retry logic
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function convertPdfToImage(file: File, maxRetries: number = 3): Promise<PdfConversionResult> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await attemptPdfConversion(file);
+      if (result.error && attempt < maxRetries) {
+        console.warn(`PDF conversion attempt ${attempt} failed: ${result.error}. Retrying...`);
+        await delay(500 * attempt); // Exponential backoff
+        continue;
+      }
+      return result;
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`PDF conversion attempt ${attempt} threw error: ${err?.message}. Retrying...`);
+      if (attempt < maxRetries) {
+        await delay(500 * attempt);
+      }
+    }
+  }
+  
+  return {
+    imageUrl: "",
+    file: null,
+    error: `Failed after ${maxRetries} attempts: ${lastError?.message || "Unknown error"}`,
+  };
+}
+
+async function attemptPdfConversion(file: File): Promise<PdfConversionResult> {
   try {
     if (typeof window === "undefined" || typeof document === "undefined") {
       return { imageUrl: "", file: null, error: "Not running in a browser context" };
     }
 
+    // Validate file before processing
+    if (!file || file.size === 0) {
+      return { imageUrl: "", file: null, error: "Invalid or empty file" };
+    }
+
+    if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
+      return { imageUrl: "", file: null, error: "File is not a PDF" };
+    }
+
     const lib = await loadPdfJs();
 
-    const arrayBuffer = await file.arrayBuffer();
+    let arrayBuffer: ArrayBuffer;
+    try {
+      arrayBuffer = await file.arrayBuffer();
+    } catch (e: any) {
+      return { imageUrl: "", file: null, error: `Failed to read file: ${e?.message || String(e)}` };
+    }
+
+    if (arrayBuffer.byteLength === 0) {
+      return { imageUrl: "", file: null, error: "File is empty" };
+    }
+
     // Helper to create a fresh copy for each attempt to avoid detached ArrayBuffer reuse
     const makeData = () => new Uint8Array(arrayBuffer.slice(0));
     let data = makeData();
@@ -67,10 +123,18 @@ export async function convertPdfToImage(file: File): Promise<PdfConversionResult
         try { lib.GlobalWorkerOptions.workerSrc = undefined; } catch {}
         try { lib.disableWorker = true; } catch {}
         data = makeData();
-        pdf = await lib.getDocument({ data }).promise;
+        try {
+          pdf = await lib.getDocument({ data }).promise;
+        } catch (retryErr: any) {
+          return { imageUrl: "", file: null, error: `PDF parsing failed: ${retryErr?.message || String(retryErr)}` };
+        }
       } else {
-        throw e;
+        return { imageUrl: "", file: null, error: `PDF parsing failed: ${msg}` };
       }
+    }
+
+    if (!pdf || pdf.numPages === 0) {
+      return { imageUrl: "", file: null, error: "PDF has no pages" };
     }
 
     const page = await pdf.getPage(1);

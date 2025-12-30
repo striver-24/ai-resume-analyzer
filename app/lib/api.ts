@@ -23,6 +23,12 @@ export interface User {
     username: string;
 }
 
+export interface TrialInfo {
+    used: number;
+    remaining: number;
+    max: number;
+}
+
 export interface KVItem {
     key: string;
     value: string;
@@ -77,6 +83,7 @@ interface ApiStore {
     isLoading: boolean;
     error: string | null;
     apiReady: boolean;
+    trial: TrialInfo;
     auth: {
         user: User | null;
         isAuthenticated: boolean;
@@ -85,6 +92,8 @@ interface ApiStore {
         refreshUser: () => Promise<void>;
         checkAuthStatus: () => Promise<boolean>;
         getUser: () => User | null;
+        getTrial: () => TrialInfo;
+        canUseFreeTrial: () => boolean;
     };
     fs: {
         write: (
@@ -135,6 +144,8 @@ interface ApiStore {
     clearError: () => void;
 }
 
+const DEFAULT_TRIAL: TrialInfo = { used: 0, remaining: 3, max: 3 };
+
 export const useApiStore = create<ApiStore>((set, get) => {
     const setError = (msg: string | null) => {
         set({ error: msg, isLoading: false });
@@ -149,6 +160,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
             if (!res.ok) throw new Error("Auth status failed");
             const json = await res.json();
             const isAuthenticated = Boolean(json?.isAuthenticated);
+            const trialInfo: TrialInfo = json.trial ?? DEFAULT_TRIAL;
             set({
                 auth: {
                     user: json.user ?? null,
@@ -158,7 +170,10 @@ export const useApiStore = create<ApiStore>((set, get) => {
                     refreshUser: get().auth.refreshUser,
                     checkAuthStatus: get().auth.checkAuthStatus,
                     getUser: () => get().auth.user,
+                    getTrial: () => get().trial,
+                    canUseFreeTrial: () => get().trial.remaining > 0,
                 },
+                trial: trialInfo,
                 isLoading: false,
             });
             return isAuthenticated;
@@ -197,7 +212,10 @@ export const useApiStore = create<ApiStore>((set, get) => {
                     refreshUser: get().auth.refreshUser,
                     checkAuthStatus: get().auth.checkAuthStatus,
                     getUser: () => null,
+                    getTrial: () => DEFAULT_TRIAL,
+                    canUseFreeTrial: () => false,
                 },
+                trial: DEFAULT_TRIAL,
                 isLoading: false,
             });
         } catch (err: any) {
@@ -491,6 +509,7 @@ export const useApiStore = create<ApiStore>((set, get) => {
         isLoading: true,
         error: null,
         apiReady: true,
+        trial: DEFAULT_TRIAL,
         auth: {
             user: null,
             isAuthenticated: false,
@@ -499,6 +518,8 @@ export const useApiStore = create<ApiStore>((set, get) => {
             refreshUser,
             checkAuthStatus,
             getUser: () => get().auth.user,
+            getTrial: () => get().trial,
+            canUseFreeTrial: () => get().trial.remaining > 0,
         },
         fs: {
             write: (path: string, data: string | File | Blob) => write(path, data),

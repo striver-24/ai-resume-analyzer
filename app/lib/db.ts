@@ -1,7 +1,7 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
 
-// Enable fetch mode for better compatibility with Vercel
-neonConfig.fetchConnectionCache = true;
+// Disable connection cache to avoid stale prepared statements
+neonConfig.fetchConnectionCache = false;
 
 // Get database connection string from environment
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -10,7 +10,7 @@ if (!DATABASE_URL) {
     throw new Error('DATABASE_URL environment variable is not set');
 }
 
-// Create SQL query function
+// Create SQL query function - fresh connection each time
 export const sql = neon(DATABASE_URL);
 
 /**
@@ -19,6 +19,8 @@ export const sql = neon(DATABASE_URL);
 
 // User operations
 export async function createUser(uuid: string, username: string, email?: string) {
+    // Use a simpler INSERT that doesn't require trial columns
+    // The database defaults will handle trial_uses and max_trial_uses
     const result = await sql`
         INSERT INTO users (uuid, name, email)
         VALUES (${uuid}, ${username}, ${email || null})
@@ -41,6 +43,58 @@ export async function getUserById(id: string) {
         SELECT * FROM users WHERE id = ${id} LIMIT 1
     `;
     return result[0] || null;
+}
+
+// Trial tracking operations
+export async function getTrialUsage(userId: string): Promise<{ used: number; remaining: number; max: number }> {
+    try {
+        // Use a fresh connection to avoid stale prepared statements
+        const freshSql = neon(DATABASE_URL!);
+        const result = await freshSql`
+            SELECT id, trial_uses, max_trial_uses FROM users WHERE id = ${userId} LIMIT 1
+        `;
+        const row = result[0];
+        if (!row) {
+            return { used: 0, remaining: 3, max: 3 };
+        }
+        const used = parseInt(row.trial_uses) || 0;
+        const max = parseInt(row.max_trial_uses) || 3;
+        return { used, remaining: Math.max(0, max - used), max };
+    } catch (error) {
+        // If columns don't exist yet, return defaults
+        console.warn('Trial usage check failed, using defaults:', error);
+        return { used: 0, remaining: 3, max: 3 };
+    }
+}
+
+export async function incrementTrialUsage(userId: string): Promise<{ success: boolean; used: number; remaining: number; max: number }> {
+    try {
+        // Use a fresh connection to avoid stale prepared statements
+        const freshSql = neon(DATABASE_URL!);
+        
+        // Get current values
+        const current = await freshSql`SELECT id, trial_uses, max_trial_uses FROM users WHERE id = ${userId} LIMIT 1`;
+        if (!current[0]) {
+            return { success: false, used: 0, remaining: 0, max: 3 };
+        }
+        
+        const currentTrialUses = parseInt(current[0].trial_uses) || 0;
+        const newTrialUses = currentTrialUses + 1;
+        const max = parseInt(current[0].max_trial_uses) || 3;
+        
+        // Update trial_uses with fresh connection
+        await freshSql`UPDATE users SET trial_uses = ${newTrialUses}, updated_at = CURRENT_TIMESTAMP WHERE id = ${userId}`;
+        
+        return { success: true, used: newTrialUses, remaining: Math.max(0, max - newTrialUses), max };
+    } catch (error) {
+        console.error('Failed to increment trial usage:', error);
+        return { success: false, used: 0, remaining: 0, max: 3 };
+    }
+}
+
+export async function canUseFreeTrial(userId: string): Promise<boolean> {
+    const { remaining } = await getTrialUsage(userId);
+    return remaining > 0;
 }
 
 // Session operations

@@ -21,10 +21,7 @@ const Auth = () => {
 
     const triedRef = useRef(false);
 
-    // Console log for developer credit
-    useEffect(() => {
-        console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
-    }, []);
+
 
     useEffect(() => {
         // When landing from OAuth, check/capture session then redirect

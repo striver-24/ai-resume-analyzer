@@ -12,7 +12,8 @@ import {
 } from '../app/lib/ai';
 import { applyAISuggestions, analysisToSuggestions } from '../app/lib/resume-parser';
 import type { ChatMessage } from '../app/lib/ai';
-import { requireAuth } from '../app/lib/auth';
+import { requireAuth, getAuthenticatedUser } from '../app/lib/auth';
+import { incrementTrialUsage, canUseFreeTrial } from '../app/lib/db';
 
 /**
  * Unified AI endpoint handling multiple AI operations
@@ -76,6 +77,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return handleApplySuggestions(req, res);
             case 'extract-jd':
                 return handleExtractJD(req, res);
+            case 'use-trial':
+                return handleUseTrial(req, res, user);
+            case 'check-trial':
+                return handleCheckTrial(req, res, user);
             default:
                 return res.status(400).json({
                     success: false,
@@ -680,6 +685,66 @@ Return ONLY valid JSON.`;
         return res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : 'Failed to extract JD',
+        });
+    }
+}
+/**
+ * Handle trial usage check and decrement
+ * This should be called before any analysis to track free trial usage
+ */
+async function handleUseTrial(req: VercelRequest, res: VercelResponse, user: any) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ success: false, error: 'Method not allowed' });
+    }
+
+    try {
+        // Check if user can use free trial
+        const canUse = await canUseFreeTrial(user.id);
+        
+        if (!canUse) {
+            return res.status(403).json({
+                success: false,
+                error: 'Free trial limit reached (3/3 uses). Please upgrade to continue.',
+                trialExhausted: true,
+            });
+        }
+
+        // Increment trial usage
+        const result = await incrementTrialUsage(user.id);
+
+        return res.status(200).json({
+            success: true,
+            trial: {
+                used: result.used,
+                remaining: result.remaining,
+                max: result.max,
+            },
+        });
+    } catch (error) {
+        console.error('Trial usage error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to process trial usage',
+        });
+    }
+}
+
+/**
+ * Handle trial status check without decrementing
+ */
+async function handleCheckTrial(req: VercelRequest, res: VercelResponse, user: any) {
+    try {
+        const canUse = await canUseFreeTrial(user.id);
+        
+        return res.status(200).json({
+            success: true,
+            canUseFreeTrial: canUse,
+        });
+    } catch (error) {
+        console.error('Check trial error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Failed to check trial status',
         });
     }
 }

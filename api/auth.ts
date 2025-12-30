@@ -6,7 +6,12 @@ import {
     destroySession,
     clearSessionCookie,
     getAuthenticatedUser,
+    getGoogleUserInfo,
+    createUserSession,
+    setSessionCookie,
+    verifyStateToken,
 } from '../app/lib/auth';
+import { getTrialUsage } from '../app/lib/db';
 
 /**
  * Unified Auth endpoint handling all authentication operations
@@ -51,6 +56,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     return res.status(405).json({ error: 'Method not allowed' });
                 }
                 return handleStatus(req, res);
+
+            case 'callback':
+                if (req.method !== 'GET') {
+                    return res.status(405).json({ error: 'Method not allowed' });
+                }
+                return handleCallback(req, res);
 
             default:
                 return res.status(400).json({
@@ -118,9 +129,8 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
             });
         }
 
-        // Default free trial data for all new users
-        const trial_total_days = 14;
-        const trial_started_at = new Date().toISOString();
+        // Get real-time trial usage from database
+        const trialUsage = await getTrialUsage(user.id);
 
         return res.status(200).json({
             isAuthenticated: true,
@@ -129,9 +139,12 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
                 username: user.username,
                 email: user.email,
             },
-            trial_started_at,
-            trial_total_days,
-            plan_type: 'free',
+            trial: {
+                used: trialUsage.used,
+                remaining: trialUsage.remaining,
+                max: trialUsage.max,
+            },
+            plan_type: trialUsage.remaining > 0 ? 'free_trial' : 'free_expired',
         });
     } catch (error) {
         console.error('Status check error:', error);
@@ -139,5 +152,49 @@ async function handleStatus(req: VercelRequest, res: VercelResponse) {
             error: 'Internal server error',
             message: error instanceof Error ? error.message : 'Unknown error',
         });
+    }
+}
+
+async function handleCallback(req: VercelRequest, res: VercelResponse) {
+    try {
+        const { code, state, error: oauthError } = req.query;
+
+        // Handle OAuth errors
+        if (oauthError) {
+            console.error('OAuth error:', oauthError);
+            return res.redirect(302, `/?error=${encodeURIComponent(String(oauthError))}`);
+        }
+
+        if (!code || typeof code !== 'string') {
+            return res.redirect(302, '/?error=missing_code');
+        }
+
+        // Get user info from Google
+        const googleUser = await getGoogleUserInfo(code);
+
+        if (!googleUser.email) {
+            return res.redirect(302, '/?error=no_email');
+        }
+
+        // Create session
+        const { sessionToken } = await createUserSession(
+            googleUser.id,
+            googleUser.name,
+            googleUser.email
+        );
+
+        // Set session cookie
+        setSessionCookie(res, sessionToken);
+
+        // Parse state to get redirect URL
+        const stateData = verifyStateToken(state as string);
+        const redirectTo = stateData?.redirectTo || '/upload';
+
+        // Redirect to the original page or default
+        return res.redirect(302, redirectTo);
+    } catch (error) {
+        console.error('OAuth callback error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return res.redirect(302, `/?error=${encodeURIComponent(errorMessage)}`);
     }
 }

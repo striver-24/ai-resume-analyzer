@@ -11,32 +11,48 @@ if (!GCS_BUCKET_NAME) {
 }
 
 // Initialize Google Cloud Storage
-let storage: Storage;
-let bucket: any;
+let storage: Storage | null = null;
+let bucket: any = null;
+let initializationError: Error | null = null;
 
-try {
-    // If GOOGLE_APPLICATION_CREDENTIALS is a JSON string (for Vercel), parse it
-    if (GOOGLE_APPLICATION_CREDENTIALS && GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
-        const credentials = JSON.parse(GOOGLE_APPLICATION_CREDENTIALS);
-        storage = new Storage({
-            projectId: GCP_PROJECT_ID,
-            credentials,
-        });
-    } else {
-        // Use default credentials or key file path
-        storage = new Storage({
-            projectId: GCP_PROJECT_ID,
-            keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
-        });
+function initializeStorage(): void {
+    if (storage) return; // Already initialized
+    
+    try {
+        // If GOOGLE_APPLICATION_CREDENTIALS is a JSON string (for Vercel), parse it
+        if (GOOGLE_APPLICATION_CREDENTIALS && GOOGLE_APPLICATION_CREDENTIALS.startsWith('{')) {
+            const credentials = JSON.parse(GOOGLE_APPLICATION_CREDENTIALS);
+            storage = new Storage({
+                projectId: GCP_PROJECT_ID,
+                credentials,
+            });
+        } else {
+            // Use default credentials or key file path
+            storage = new Storage({
+                projectId: GCP_PROJECT_ID,
+                keyFilename: GOOGLE_APPLICATION_CREDENTIALS,
+            });
+        }
+
+        if (GCS_BUCKET_NAME && storage) {
+            bucket = storage.bucket(GCS_BUCKET_NAME);
+        }
+
+        console.log('✅ Google Cloud Storage initialized');
+    } catch (error) {
+        console.error('❌ Failed to initialize Google Cloud Storage:', error);
+        initializationError = error instanceof Error ? error : new Error('Unknown initialization error');
     }
+}
 
-    if (GCS_BUCKET_NAME) {
-        bucket = storage.bucket(GCS_BUCKET_NAME);
+// Lazy initialization
+function ensureInitialized(): void {
+    if (!storage) {
+        initializeStorage();
     }
-
-    console.log('✅ Google Cloud Storage initialized');
-} catch (error) {
-    console.error('❌ Failed to initialize Google Cloud Storage:', error);
+    if (initializationError) {
+        throw initializationError;
+    }
 }
 
 /**
@@ -54,123 +70,187 @@ export interface FileMetadata {
 }
 
 /**
- * Upload a file to Google Cloud Storage
+ * Upload a file to Google Cloud Storage with retry logic
  */
 export async function uploadFile(
     file: Buffer | Uint8Array,
     fileName: string,
     contentType: string,
     userId?: string,
-    folder?: string
+    folder?: string,
+    maxRetries: number = 3
 ): Promise<FileMetadata> {
+    ensureInitialized();
+    
     if (!bucket) {
-        throw new Error('GCS bucket not initialized');
+        throw new Error('GCS bucket not initialized. Check GCS_BUCKET_NAME environment variable.');
+    }
+
+    // Validate inputs
+    if (!file || file.length === 0) {
+        throw new Error('File data is empty or invalid');
+    }
+
+    if (!fileName) {
+        throw new Error('File name is required');
     }
 
     // Generate unique file path
     const fileId = uuidv4();
-    const extension = fileName.split('.').pop();
+    const extension = fileName.split('.').pop() || 'bin';
     const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const userFolder = userId ? `users/${userId}` : 'public';
     const folderPath = folder ? `${folder}/` : '';
     const filePath = `${userFolder}/${folderPath}${fileId}.${extension}`;
 
-    // Upload to GCS
-    const gcsFile = bucket.file(filePath);
-    
-    await gcsFile.save(file, {
-        contentType,
-        metadata: {
-            originalName: fileName,
-            fileId,
-            userId: userId || 'anonymous',
-        },
-    });
+    let lastError: Error | null = null;
 
-    // Get file metadata
-    const [metadata] = await gcsFile.getMetadata();
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            // Upload to GCS
+            const gcsFile = bucket.file(filePath);
+            
+            await gcsFile.save(file, {
+                contentType,
+                resumable: false, // Disable resumable uploads for small files (more reliable)
+                validation: 'crc32c',
+                metadata: {
+                    originalName: fileName,
+                    fileId,
+                    userId: userId || 'anonymous',
+                },
+            });
 
-    return {
-        id: fileId,
-        name: sanitizedName,
-        path: filePath,
-        size: parseInt(metadata.size || '0'),
-        contentType: metadata.contentType || contentType,
-        url: `gs://${GCS_BUCKET_NAME}/${filePath}`,
-        created: new Date(metadata.timeCreated),
-        updated: new Date(metadata.updated),
-    };
+            // Get file metadata
+            const [metadata] = await gcsFile.getMetadata();
+
+            return {
+                id: fileId,
+                name: sanitizedName,
+                path: filePath,
+                size: parseInt(metadata.size || '0'),
+                contentType: metadata.contentType || contentType,
+                url: `gs://${GCS_BUCKET_NAME}/${filePath}`,
+                created: new Date(metadata.timeCreated),
+                updated: new Date(metadata.updated),
+            };
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            console.error(`Upload attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+            
+            if (attempt < maxRetries) {
+                // Wait before retrying (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt - 1)));
+            }
+        }
+    }
+
+    throw new Error(`Failed to upload file after ${maxRetries} attempts: ${lastError?.message}`);
 }
 
 /**
- * Read a file from Google Cloud Storage
+ * Read a file from Google Cloud Storage with retry logic
  */
-export async function readFile(filePath: string): Promise<Buffer> {
+export async function readFile(filePath: string, maxRetries: number = 3): Promise<Buffer> {
+    ensureInitialized();
+    
     if (!bucket) {
         console.error('❌ GCS bucket not initialized');
-        throw new Error('GCS bucket not initialized');
+        throw new Error('GCS bucket not initialized. Check GCS_BUCKET_NAME environment variable.');
     }
 
-    console.log(`📂 Checking file existence: ${filePath}`);
-    console.log(`📦 Bucket: ${GCS_BUCKET_NAME}`);
-    
-    const file = bucket.file(filePath);
-    const [exists] = await file.exists();
-
-    if (!exists) {
-        console.error(`❌ File not found: ${filePath}`);
-        console.error(`❌ Bucket: ${GCS_BUCKET_NAME}`);
-        throw new Error('File not found');
+    if (!filePath) {
+        throw new Error('File path is required');
     }
 
-    console.log(`✅ File exists, downloading: ${filePath}`);
-    const [contents] = await file.download();
-    console.log(`✅ File downloaded successfully. Size: ${contents.length} bytes`);
-    return contents;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const file = bucket.file(filePath);
+            const [exists] = await file.exists();
+
+            if (!exists) {
+                throw new Error(`File not found: ${filePath}`);
+            }
+
+            const [contents] = await file.download();
+            return contents;
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            
+            // Don't retry for "not found" errors
+            if (lastError.message.includes('not found')) {
+                throw lastError;
+            }
+            
+            console.warn(`Read attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+            
+            if (attempt < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 300 * attempt));
+            }
+        }
+    }
+
+    throw lastError || new Error(`Failed to read file after ${maxRetries} attempts`);
 }
 
 /**
  * Get file metadata
  */
 export async function getFileMetadata(filePath: string): Promise<FileMetadata | null> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
 
-    const file = bucket.file(filePath);
-    const [exists] = await file.exists();
+    try {
+        const file = bucket.file(filePath);
+        const [exists] = await file.exists();
 
-    if (!exists) {
+        if (!exists) {
+            return null;
+        }
+
+        const [metadata] = await file.getMetadata();
+
+        return {
+            id: metadata.metadata?.fileId || filePath,
+            name: metadata.metadata?.originalName || filePath.split('/').pop() || 'unknown',
+            path: filePath,
+            size: parseInt(metadata.size || '0'),
+            contentType: metadata.contentType || 'application/octet-stream',
+            url: `gs://${GCS_BUCKET_NAME}/${filePath}`,
+            created: new Date(metadata.timeCreated),
+            updated: new Date(metadata.updated),
+        };
+    } catch (error) {
+        console.error('Error getting file metadata:', error);
         return null;
     }
-
-    const [metadata] = await file.getMetadata();
-
-    return {
-        id: metadata.metadata?.fileId || filePath,
-        name: metadata.metadata?.originalName || filePath.split('/').pop() || 'unknown',
-        path: filePath,
-        size: parseInt(metadata.size || '0'),
-        contentType: metadata.contentType || 'application/octet-stream',
-        url: `gs://${GCS_BUCKET_NAME}/${filePath}`,
-        created: new Date(metadata.timeCreated),
-        updated: new Date(metadata.updated),
-    };
 }
 
 /**
  * Delete a file from Google Cloud Storage
  */
 export async function deleteFile(filePath: string): Promise<void> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
 
-    const file = bucket.file(filePath);
-    const [exists] = await file.exists();
+    try {
+        const file = bucket.file(filePath);
+        const [exists] = await file.exists();
 
-    if (exists) {
-        await file.delete();
+        if (exists) {
+            await file.delete();
+        }
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        // Don't throw - deletion failure shouldn't block operations
     }
 }
 
@@ -182,6 +262,8 @@ export async function listFiles(
     folder?: string,
     limit?: number
 ): Promise<FileMetadata[]> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
@@ -213,6 +295,8 @@ export async function getSignedUrl(
     filePath: string,
     expiresIn: number = 3600 // 1 hour default
 ): Promise<string> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
@@ -237,6 +321,8 @@ export async function getSignedUrl(
  * Copy a file within the bucket
  */
 export async function copyFile(sourcePath: string, destinationPath: string): Promise<void> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
@@ -263,6 +349,8 @@ export async function moveFile(sourcePath: string, destinationPath: string): Pro
  * Check if a file exists
  */
 export async function fileExists(filePath: string): Promise<boolean> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
@@ -276,6 +364,8 @@ export async function fileExists(filePath: string): Promise<boolean> {
  * Get file size
  */
 export async function getFileSize(filePath: string): Promise<number> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
@@ -289,6 +379,8 @@ export async function getFileSize(filePath: string): Promise<number> {
  * Make a file publicly accessible
  */
 export async function makeFilePublic(filePath: string): Promise<string> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }
@@ -303,6 +395,8 @@ export async function makeFilePublic(filePath: string): Promise<string> {
  * Make a file private (remove public access)
  */
 export async function makeFilePrivate(filePath: string): Promise<void> {
+    ensureInitialized();
+    
     if (!bucket) {
         throw new Error('GCS bucket not initialized');
     }

@@ -17,10 +17,7 @@ export default function Home() {
     const navigate = useNavigate();
     const { showModal, dismissModal, freeTrialDaysRemaining } = useFreeTierWelcome();
 
-    // Console log for developer credit
-    useEffect(() => {
-        console.log('%c Made by Deivyansh Singh ', 'background: #4F46E5; color: white; font-size: 16px; padding: 10px; border-radius: 5px; font-weight: bold;');
-    }, []);
+
 
     return <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen flex flex-col">
       <Navbar />

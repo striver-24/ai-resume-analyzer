@@ -100,7 +100,7 @@ export async function generateContent(
         model: VERTEX_AI_MODEL,
         generationConfig: {
             temperature: options?.temperature ?? 0.7,
-            maxOutputTokens: options?.maxTokens ?? 8192, // Increased default for longer outputs
+            maxOutputTokens: options?.maxTokens ?? 16384, // Increased for longer resume analysis outputs
             topP: options?.topP ?? 0.95,
             topK: options?.topK ?? 40,
         },
